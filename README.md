@@ -13,26 +13,11 @@ audio-player-next-mongo/
 │   │   ├── layout.tsx
 │   │   └── page.tsx
 │   ├── actions/
-│   │   ├── artists/
-│   │   │   ├── create.ts
-│   │   │   ├── update.ts
-│   │   │   ├── delete.ts
-│   │   │   └── get.ts
-│   │   ├── tracks/
-│   │   │   ├── create.ts
-│   │   │   ├── update.ts
-│   │   │   ├── delete.ts
-│   │   │   └── get.ts
-│   │   ├── albums/
-│   │   │   ├── create.ts
-│   │   │   ├── update.ts
-│   │   │   ├── delete.ts
-│   │   │   └── get.ts
-│   │   └── users/
-│   │       ├── create.ts
-│   │       ├── update.ts
-│   │       ├── delete.ts
-│   │       └── get.ts
+│   │   ├── artists.ts (CRUD actions for artists)
+│   │   ├── tracks.ts (CRUD actions for tracks)
+│   │   ├── albums.ts (CRUD actions for albums)
+│   │   └── users.ts (CRUD actions for users)
+│   |   └── playlists.ts (CRUD actions for playlists)
 │   ├── components/
 │   │   ├── ui/
 │   │   │   ├── Button.tsx
@@ -49,19 +34,17 @@ audio-player-next-mongo/
 │   ├── lib/
 │   │   ├── mongodb.ts
 │   │   └── schemas/
-│   │       ├── artist.schema.ts
-│   │       ├── track.schema.ts
-│   │       ├── album.schema.ts
-│   │       └── user.schema.ts
+│   │       ├── artist.ts
+│   │       ├── track.ts
+│   │       ├── album.ts
+│   │       └── user.ts
+│   |       └── playlist.ts
 │   ├── types/
 │   │   ├── globals.d.ts
-│   │   └── schemas.ts
+│   │   └── ...
 │   └── utils/
 │       ├── roles.ts
 │       └── validation.ts
-├── public/
-│   ├── images/
-│   └── audio/
 ├── .env.local
 ├── .gitignore
 ├── next.config.js
