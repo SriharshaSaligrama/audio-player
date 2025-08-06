@@ -6,6 +6,7 @@ This is an audio player app built with Next.js and MongoDB.
 
 The folder structure of this project is as follows:
 
+```
 audio-player-next-mongo/
 ├── src/
 │   ├── app/
@@ -67,3 +68,4 @@ audio-player-next-mongo/
 ├── package.json
 ├── tsconfig.json
 └── README.md
+```
