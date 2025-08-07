@@ -12,7 +12,7 @@ export type JsonSchemaValidator = {
                 description?: string;
                 minimum?: number;
                 properties?: {
-                    [key: string]: any;
+                    [key: string]: unknown;
                 };
             };
         };

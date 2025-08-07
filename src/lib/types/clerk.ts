@@ -20,10 +20,10 @@ export type ClerkUser = {
     lastName: string | null;
     publicMetadata: {
         role?: 'user' | 'admin';
-        [key: string]: any;
+        [key: string]: unknown;
     };
-    privateMetadata: Record<string, any>;
-    unsafeMetadata: Record<string, any>;
+    privateMetadata: Record<string, unknown>;
+    unsafeMetadata: Record<string, unknown>;
     emailAddresses: Array<{
         id: string;
         emailAddress: string;
@@ -54,7 +54,7 @@ export type ClerkUser = {
         lastName: string | null;
         imageUrl: string | null;
         username: string | null;
-        publicMetadata: Record<string, any>;
+        publicMetadata: Record<string, unknown>;
         label: string | null;
         verification: {
             status: string;

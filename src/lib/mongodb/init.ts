@@ -23,6 +23,7 @@ async function createCollectionIfNotExists(db: Db, collectionName: string, valid
             });
         } catch (error) {
             console.warn(`Warning: Could not update validator for collection ${collectionName}. This may require elevated database permissions.`);
+            console.log(error);
             // Continue execution despite validator update failure
         }
     }

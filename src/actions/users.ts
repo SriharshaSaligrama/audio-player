@@ -3,7 +3,7 @@
 import { getDb } from "@/lib/mongodb/client";
 import { ClerkUserPublicMetadata } from "@/lib/types/clerk";
 import { transformClerkUser } from "@/lib/utils/user";
-import { clerkClient, DeletedObjectJSON, UserJSON, UserWebhookEvent } from "@clerk/nextjs/server";
+import { clerkClient, DeletedObjectJSON, UserJSON } from "@clerk/nextjs/server";
 
 export async function createClerkUser(email: string, metadata: ClerkUserPublicMetadata) {
     const client = await clerkClient();
