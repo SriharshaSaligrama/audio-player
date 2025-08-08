@@ -2,6 +2,7 @@
 
 import { getDb } from "@/lib/mongodb/client";
 import { ClerkUserPublicMetadata } from "@/lib/types/clerk";
+import { CustomError, handleActionError, validateRequiredFields } from "@/lib/utils/error-handler";
 import { transformClerkUser } from "@/lib/utils/user";
 import { clerkClient, DeletedObjectJSON, UserJSON } from "@clerk/nextjs/server";
 
@@ -14,9 +15,12 @@ export async function createClerkUser(email: string, metadata: ClerkUserPublicMe
         });
         return user;
     } catch (error) {
-        console.error('Error creating Clerk user:', error);
-        const errMsg = error instanceof Error ? error.message : String(error);
-        return { success: false, message: 'Clerk error: ' + errMsg };
+        handleActionError({
+            error,
+            source: 'createClerkUser',
+            details: { email, metadata },
+            defaultType: 'ClerkError',
+        });
     }
 }
 
@@ -26,8 +30,11 @@ export async function getClerkUsers() {
         const users = await client.users.getUserList();
         return users;
     } catch (error) {
-        console.error('Error getting Clerk users:', error);
-        return [];
+        handleActionError({
+            error,
+            source: 'getClerkUsers',
+            defaultType: 'ClerkError',
+        });
     }
 }
 
@@ -37,8 +44,12 @@ export async function getClerkUserById(userId: string) {
         const user = await client.users.getUser(userId);
         return user;
     } catch (error) {
-        console.error('Error getting Clerk user by ID:', error);
-        return null;
+        handleActionError({
+            error,
+            source: 'getClerkUserById',
+            details: { userId },
+            defaultType: 'ClerkError',
+        });
     }
 }
 
@@ -50,9 +61,12 @@ export async function updateClerkUserMetadata(userId: string, metadata: ClerkUse
         });
         return user;
     } catch (error) {
-        console.error('Error updating Clerk user metadata:', error);
-        const errMsg = error instanceof Error ? error.message : String(error);
-        return { success: false, message: 'Clerk error: ' + errMsg };
+        handleActionError({
+            error,
+            source: 'updateClerkUserMetadata',
+            details: { userId, metadata },
+            defaultType: 'ClerkError',
+        });
     }
 }
 
@@ -64,9 +78,12 @@ export async function updateClerkUserProfileImage(userId: string, image: File) {
         });
         return user;
     } catch (error) {
-        console.error('Error updating Clerk user profile image:', error);
-        const errMsg = error instanceof Error ? error.message : String(error);
-        return { success: false, message: 'Clerk error: ' + errMsg };
+        handleActionError({
+            error,
+            source: 'updateClerkUserProfileImage',
+            details: { userId },
+            defaultType: 'ClerkError',
+        });
     }
 }
 
@@ -76,9 +93,12 @@ export async function banClerkUser(userId: string) {
         const user = await client.users.banUser(userId);
         return user;
     } catch (error) {
-        console.error('Error banning Clerk user:', error);
-        const errMsg = error instanceof Error ? error.message : String(error);
-        return { success: false, message: 'Clerk error: ' + errMsg };
+        handleActionError({
+            error,
+            source: 'banClerkUser',
+            details: { userId },
+            defaultType: 'ClerkError',
+        });
     }
 }
 
@@ -88,9 +108,12 @@ export async function unbanClerkUser(userId: string) {
         const user = await client.users.unbanUser(userId);
         return user;
     } catch (error) {
-        console.error('Error unbanning Clerk user:', error);
-        const errMsg = error instanceof Error ? error.message : String(error);
-        return { success: false, message: 'Clerk error: ' + errMsg };
+        handleActionError({
+            error,
+            source: 'unbanClerkUser',
+            details: { userId },
+            defaultType: 'ClerkError',
+        });
     }
 }
 
@@ -100,87 +123,104 @@ export async function deleteClerkUser(userId: string) {
         await client.users.deleteUser(userId);
         return { success: true, message: 'User deleted successfully' };
     } catch (error) {
-        console.error('Error deleting Clerk user:', error);
-        const errMsg = error instanceof Error ? error.message : String(error);
-        return { success: false, message: 'Clerk error: ' + errMsg };
+        handleActionError({
+            error,
+            source: 'deleteClerkUser',
+            details: { userId },
+            defaultType: 'ClerkError',
+        });
     }
 }
 
 export async function createMongoUser(evt: UserJSON) {
     try {
         if (!evt) {
-            return { success: false, message: 'Invalid user data' };
+            throw new CustomError({
+                message: 'Invalid user data',
+                statusCode: 400,
+                type: 'ValidationError',
+                details: { evt }
+            });
         }
         const mongoUser = transformClerkUser(evt);
         // Validate required fields
-        if (!mongoUser.clerkId) {
-            return { success: false, message: 'clerkId is required' };
-        }
-        if (!mongoUser.email) {
-            return { success: false, message: 'Email is required' };
-        }
-        if (!mongoUser.displayName) {
-            return { success: false, message: 'Display name is required' };
-        }
-        if (!mongoUser.role) {
-            return { success: false, message: 'Role is required' };
-        }
-        if (typeof mongoUser.isActive !== 'boolean') {
-            return { success: false, message: 'isActive is required' };
-        }
+        validateRequiredFields({
+            obj: mongoUser,
+            fields: ['clerkId', 'email', 'displayName', 'role', 'isActive'],
+            errorMessages: {
+                clerkId: 'clerkId is required',
+                email: 'Email is required',
+                displayName: 'Display name is required',
+                role: 'Role is required',
+                isActive: 'isActive is required',
+            },
+            errorContext: { evt },
+        });
         const db = await getDb();
         const result = await db.collection('users').insertOne(mongoUser);
         return { success: result.acknowledged, message: `User created with ID: ${result.insertedId}` };
     } catch (error) {
-        console.error('Error creating user:', error);
-        const errMsg = error instanceof Error ? error.message : String(error);
-        return { success: false, message: 'Database error: ' + errMsg };
+        handleActionError({
+            error,
+            source: 'createMongoUser',
+            details: { evt },
+        });
     }
 }
 
 export async function updateMongoUser(evt: UserJSON) {
     try {
         if (!evt || !evt.id) {
-            return { success: false, message: 'Invalid user data or missing user ID' };
+            throw new CustomError({
+                message: 'Invalid user data or missing user ID',
+                statusCode: 400,
+                type: 'ValidationError',
+                details: { evt }
+            });
         }
         const updatedUser = transformClerkUser(evt);
         // Validate required fields
-        if (!updatedUser.clerkId) {
-            return { success: false, message: 'clerkId is required' };
-        }
-        if (!updatedUser.email) {
-            return { success: false, message: 'Email is required' };
-        }
-        if (!updatedUser.displayName) {
-            return { success: false, message: 'Display name is required' };
-        }
-        if (!updatedUser.role) {
-            return { success: false, message: 'Role is required' };
-        }
-        if (typeof updatedUser.isActive !== 'boolean') {
-            return { success: false, message: 'isActive is required' };
-        }
+        validateRequiredFields({
+            obj: updatedUser,
+            fields: ['clerkId', 'email', 'displayName', 'role', 'isActive'],
+            errorMessages: {
+                clerkId: 'clerkId is required',
+                email: 'Email is required',
+                displayName: 'Display name is required',
+                role: 'Role is required',
+                isActive: 'isActive is required',
+            },
+            errorContext: { evt },
+        });
         const db = await getDb();
         const result = await db.collection('users').updateOne({ clerkId: evt.id }, { $set: updatedUser }, { upsert: true });
         return { success: result.acknowledged, message: 'User updated successfully' };
     } catch (error) {
-        console.error('Error updating user:', error);
-        const errMsg = error instanceof Error ? error.message : String(error);
-        return { success: false, message: 'Database error: ' + errMsg };
+        handleActionError({
+            error,
+            source: 'updateMongoUser',
+            details: { evt },
+        });
     }
 }
 
 export async function deleteMongoUser(evt: DeletedObjectJSON) {
     try {
         if (!evt || !evt.id) {
-            return { success: false, message: 'Invalid user data or missing user ID' };
+            throw new CustomError({
+                message: 'Invalid user data or missing user ID',
+                statusCode: 400,
+                type: 'ValidationError'
+            });
         }
         const db = await getDb();
         const result = await db.collection('users').deleteOne({ clerkId: evt.id });
         return { success: result.acknowledged, message: 'User deleted successfully' };
     } catch (error) {
-        console.error('Error deleting user:', error);
-        const errMsg = error instanceof Error ? error.message : String(error);
-        return { success: false, message: 'Database error: ' + errMsg };
+        handleActionError({
+            error,
+            source: 'deleteMongoUser',
+            details: { evt },
+        });
     }
 }
