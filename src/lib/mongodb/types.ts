@@ -22,11 +22,26 @@ type MongoDBBsonType =
     | "minKey"
     | "maxKey";
 
+// MongoDB enum values
+export type MongoEnumValue =
+    | string
+    | number
+    | boolean
+    | null
+    | Date
+    | { [key: string]: unknown }
+    | unknown[]
+    | { _bsontype: 'ObjectId'; id?: Uint8Array } // ObjectId placeholder
+    | { _bsontype: 'Decimal128'; bytes?: Uint8Array } // Decimal128 placeholder
+    | { _bsontype: 'Binary'; buffer?: Uint8Array } // Binary placeholder
+    | { _bsontype: 'Long'; low?: number; high?: number } // Long placeholder
+    | { _bsontype: 'Int32'; value?: number } // Int32 placeholder;
+
 // Field definition type
 export type JsonSchemaDefinition = {
     bsonType: MongoDBBsonType | MongoDBBsonType[];
     description?: string;
-    enum?: unknown[];
+    enum?: readonly MongoEnumValue[];
     minimum?: number;
     maximum?: number;
     minLength?: number;

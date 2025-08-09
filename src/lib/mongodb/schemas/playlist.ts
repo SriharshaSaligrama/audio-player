@@ -11,6 +11,7 @@ import {
 import { Track } from './track';
 import { User } from './user';
 import { Collections } from '@/lib/constants/collections';
+import { REASONS_BY_ENTITY, TakedownReason } from '@/lib/constants/enums';
 
 export const playlistSchemaValidator: JsonSchemaValidator = {
     $jsonSchema: {
@@ -39,6 +40,10 @@ export const playlistSchemaValidator: JsonSchemaValidator = {
             }),
             createdAt: dateField(),
             updatedAt: dateField(),
+            isDeleted: boolField('Soft delete flag'),
+            deletedAt: { bsonType: ['date', 'null'] },
+            takedownReason: stringField('Reason for deletion', { enum: REASONS_BY_ENTITY[Collections.PLAYLISTS] }),
+            replacedBy: objectIdField('Replaced by another playlist', { refCollection: Collections.PLAYLISTS }),
         }
     }
 };
@@ -60,4 +65,8 @@ export type Playlist = {
     };
     createdAt: Date;
     updatedAt: Date;
+    isDeleted?: boolean;
+    deletedAt?: Date | null;
+    takedownReason?: TakedownReason;
+    replacedBy?: string;
 }

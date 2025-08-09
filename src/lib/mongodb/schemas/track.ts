@@ -2,6 +2,7 @@ import {
     JsonSchemaValidator,
     stringField,
     intField,
+    boolField,
     dateField,
     objectIdField,
     arrayField,
@@ -10,6 +11,7 @@ import {
 import { Artist } from './artist';
 import { Album } from './album';
 import { Collections } from '@/lib/constants/collections';
+import { REASONS_BY_ENTITY, TakedownReason } from '@/lib/constants/enums';
 
 export const trackSchemaValidator: JsonSchemaValidator = {
     $jsonSchema: {
@@ -46,6 +48,10 @@ export const trackSchemaValidator: JsonSchemaValidator = {
             tags: arrayField(stringField(), 'List of tags associated with the track'),
             createdAt: dateField(),
             updatedAt: dateField(),
+            isDeleted: boolField('Soft delete flag'),
+            deletedAt: { bsonType: ['date', 'null'] },
+            takedownReason: stringField('Reason for deletion', { enum: REASONS_BY_ENTITY[Collections.TRACKS] }),
+            replacedBy: objectIdField('Replaced by another track', { refCollection: Collections.TRACKS }),
         }
     }
 };
@@ -72,4 +78,8 @@ export type Track = {
     tags: string[];
     createdAt: Date;
     updatedAt: Date;
+    isDeleted?: boolean;
+    deletedAt?: Date | null;
+    takedownReason?: TakedownReason;
+    replacedBy?: string;
 }

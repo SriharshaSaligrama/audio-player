@@ -39,6 +39,9 @@ export const userSchemaValidator: JsonSchemaValidator = {
             lastActiveAt: { bsonType: ['date', 'null'] },
             isActive: boolField(),
             isBanned: boolField(),
+            isDeleted: boolField('Soft delete flag'),
+            deletedAt: { bsonType: ['date', 'null'] },
+            deletionReason: stringField('Reason for user deletion', { enum: ['gdpr', 'spam', 'self_deleted', 'admin_removed', 'other'] }),
         }
     }
 };
@@ -70,6 +73,9 @@ export type User = {
     lastActiveAt: Date | null;
     isActive: boolean;
     isBanned: boolean;
+    isDeleted?: boolean;
+    deletedAt?: Date | null;
+    deletionReason?: 'gdpr' | 'spam' | 'self_deleted' | 'admin_removed' | 'other';
 }
 
 export type CreateUser = Omit<User, '_id'>;

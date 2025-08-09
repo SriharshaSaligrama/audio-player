@@ -2,11 +2,14 @@ import {
     JsonSchemaValidator,
     stringField,
     intField,
+    boolField,
     dateField,
     objectIdField,
     arrayField,
     objectField
 } from '@/lib/mongodb/types';
+import { Collections } from '@/lib/constants/collections';
+import { REASONS_BY_ENTITY, TakedownReason } from '@/lib/constants/enums';
 
 export const artistSchemaValidator: JsonSchemaValidator = {
     $jsonSchema: {
@@ -32,6 +35,10 @@ export const artistSchemaValidator: JsonSchemaValidator = {
             }),
             createdAt: dateField(),
             updatedAt: dateField(),
+            isDeleted: boolField('Soft delete flag'),
+            deletedAt: { bsonType: ['date', 'null'] },
+            takedownReason: stringField('Reason for deletion', { enum: REASONS_BY_ENTITY[Collections.ARTISTS] }),
+            replacedBy: objectIdField('Replaced by another artist', { refCollection: Collections.ARTISTS }),
         }
     }
 };
@@ -56,4 +63,8 @@ export type Artist = {
     };
     createdAt: Date;
     updatedAt: Date;
+    isDeleted?: boolean;
+    deletedAt?: Date | null;
+    takedownReason?: TakedownReason;
+    replacedBy?: string;
 }

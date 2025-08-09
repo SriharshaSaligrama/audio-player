@@ -214,8 +214,19 @@ export async function deleteMongoUser(evt: DeletedObjectJSON) {
             });
         }
         const db = await getDb();
-        const result = await db.collection('users').deleteOne({ clerkId: evt.id });
-        return { success: result.acknowledged, message: 'User deleted successfully' };
+        const result = await db.collection('users').updateOne(
+            { clerkId: evt.id },
+            {
+                $set: {
+                    isDeleted: true,
+                    deletedAt: new Date(),
+                    deletionReason: 'other',
+                    isActive: false,
+                    isBanned: false,
+                },
+            }
+        );
+        return { success: result.acknowledged, message: 'User soft-deleted successfully' };
     } catch (error) {
         handleActionError({
             error,

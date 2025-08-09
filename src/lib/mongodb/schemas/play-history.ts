@@ -49,7 +49,9 @@ export const playHistorySchemaValidator: JsonSchemaValidator = {
                 offline: boolField(),
             }, 'Additional playback metadata'),
 
-            createdAt: dateField('Insertion timestamp')
+            createdAt: dateField('Insertion timestamp'),
+            isDeleted: boolField('Soft delete flag'),
+            deletedAt: { bsonType: ['date', 'null'] },
         }
     }
 };
@@ -81,6 +83,8 @@ export type PlayHistory = {
         offline?: boolean;
     };
     createdAt?: Date;
+    isDeleted?: boolean;
+    deletedAt?: Date | null;
 }
 
 export type CreatePlayHistory = Omit<PlayHistory, '_id'>;
