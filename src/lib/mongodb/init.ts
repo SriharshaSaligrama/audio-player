@@ -2,7 +2,7 @@ import { Db } from 'mongodb';
 import { getDb } from '@/lib/mongodb/client';
 import { Collections } from '@/lib/constants/collections';
 import { JsonSchemaValidator } from '@/lib/mongodb/types';
-import { albumSchemaValidator, artistSchemaValidator, playlistSchemaValidator, trackSchemaValidator, userSchemaValidator } from '@/lib/mongodb/schemas';
+import { albumSchemaValidator, artistSchemaValidator, playlistSchemaValidator, trackSchemaValidator, userSchemaValidator, playHistorySchemaValidator } from '@/lib/mongodb/schemas';
 
 
 async function createCollectionIfNotExists(db: Db, collectionName: string, validator: JsonSchemaValidator) {
@@ -63,6 +63,21 @@ async function createCollectionIfNotExists(db: Db, collectionName: string, valid
         await db.collection(collectionName).createIndex({ collaborators: 1, name: 1 });
         // For playlist search
         await db.collection(collectionName).createIndex({ name: 1 });
+    } else if (collectionName === Collections.PLAY_HISTORY) {
+        // Primary user queries - user's recent plays
+        await db.collection(collectionName).createIndex({ userId: 1, playedAt: -1 });
+        // Track analytics - popularity over time
+        await db.collection(collectionName).createIndex({ trackId: 1, playedAt: -1 });
+        // Global trending - recent plays
+        await db.collection(collectionName).createIndex({ playedAt: -1 });
+        // User-track relationship - play existence/count
+        await db.collection(collectionName).createIndex({ userId: 1, trackId: 1 });
+        // Analytics by source
+        await db.collection(collectionName).createIndex({ source: 1, playedAt: -1 });
+        // Device analytics
+        await db.collection(collectionName).createIndex({ "device.type": 1, playedAt: -1 });
+        // Session tracking
+        await db.collection(collectionName).createIndex({ "metadata.sessionId": 1, playedAt: 1 });
     }
 }
 
@@ -77,6 +92,7 @@ export async function initializeDatabase() {
         await createCollectionIfNotExists(db, Collections.ALBUMS, albumSchemaValidator);
         await createCollectionIfNotExists(db, Collections.TRACKS, trackSchemaValidator);
         await createCollectionIfNotExists(db, Collections.PLAYLISTS, playlistSchemaValidator);
+        await createCollectionIfNotExists(db, Collections.PLAY_HISTORY, playHistorySchemaValidator);
 
         console.log('Database initialization completed');
     } catch (error) {

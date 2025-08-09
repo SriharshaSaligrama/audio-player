@@ -1,84 +1,40 @@
-import { JsonSchemaValidator } from '@/lib/mongodb/types';
+import {
+    JsonSchemaValidator,
+    stringField,
+    intField,
+    dateField,
+    objectIdField,
+    arrayField,
+    objectField
+} from '@/lib/mongodb/types';
 import { Artist } from '@/lib/mongodb/schemas/artist';
+import { Collections } from '@/lib/constants/collections';
 
 export const albumSchemaValidator: JsonSchemaValidator = {
     $jsonSchema: {
         bsonType: 'object',
         required: ['title', 'artists', 'releaseDate', 'totalTracks', 'totalDuration'],
         properties: {
-            _id: {
-                bsonType: 'objectId'
-            },
-            title: {
-                bsonType: 'string',
-                description: 'Album title is required'
-            },
-            artists: {
-                bsonType: 'array',
-                items: {
-                    bsonType: 'objectId'
-                },
-                description: 'References to artist documents'
-            },
-            releaseDate: {
-                bsonType: 'date',
-                description: 'Album release date'
-            },
-            coverImage: {
-                bsonType: 'string',
-                description: 'Album cover image URL'
-            },
-            description: {
-                bsonType: 'string',
-                description: 'Album description or background information'
-            },
-            genres: {
-                bsonType: 'array',
-                items: {
-                    bsonType: 'string'
-                },
-                description: 'List of music genres for the album'
-            },
-            label: {
-                bsonType: 'string',
-                description: 'Record label that published the album'
-            },
-            totalTracks: {
-                bsonType: 'number',
-                minimum: 1,
-                description: 'Total number of tracks in the album'
-            },
-            totalDuration: {
-                bsonType: 'number',
-                minimum: 0,
-                description: 'Total duration of the album in seconds'
-            },
-            stats: {
-                bsonType: 'object',
-                properties: {
-                    plays: {
-                        bsonType: 'number',
-                        minimum: 0,
-                        description: 'Number of times the album has been played'
-                    },
-                    likes: {
-                        bsonType: 'number',
-                        minimum: 0,
-                        description: 'Number of likes received'
-                    },
-                    shares: {
-                        bsonType: 'number',
-                        minimum: 0,
-                        description: 'Number of times the album has been shared'
-                    }
-                }
-            },
-            createdAt: {
-                bsonType: 'date'
-            },
-            updatedAt: {
-                bsonType: 'date'
-            }
+            _id: objectIdField(),
+            title: stringField('Album title is required'),
+            artists: arrayField(
+                objectIdField(undefined, { refCollection: Collections.ARTISTS }),
+                'References to artist documents'
+            ),
+            releaseDate: dateField('Album release date'),
+            coverImage: stringField('Album cover image URL'),
+            description: stringField('Album description or background information'),
+            genres: arrayField(stringField(), 'List of music genres for the album'),
+            label: stringField('Record label that published the album'),
+            totalTracks: intField('Total number of tracks in the album', { minimum: 1 }),
+            totalDuration: intField('Total duration of the album in seconds', { minimum: 0 }),
+            stats: objectField({
+                plays: intField('Number of times the album has been played', { minimum: 0 }),
+                likes: intField('Number of likes received', { minimum: 0 }),
+                shares: intField('Number of times the album has been shared', { minimum: 0 })
+            }),
+            createdAt: dateField(),
+            updatedAt: dateField(),
         }
     }
 };

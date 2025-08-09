@@ -1,65 +1,37 @@
-import { JsonSchemaValidator } from '@/lib/mongodb/types';
+import {
+    JsonSchemaValidator,
+    stringField,
+    intField,
+    dateField,
+    objectIdField,
+    arrayField,
+    objectField
+} from '@/lib/mongodb/types';
 
 export const artistSchemaValidator: JsonSchemaValidator = {
     $jsonSchema: {
         bsonType: 'object',
         required: ['name'],
         properties: {
-            _id: {
-                bsonType: 'objectId'
-            },
-            name: {
-                bsonType: 'string',
-                description: 'Artist name is required'
-            },
-            bio: {
-                bsonType: 'string',
-                description: 'Artist biography'
-            },
-            avatar: {
-                bsonType: 'string',
-                description: 'Artist profile picture URL'
-            },
-            coverImage: {
-                bsonType: 'string',
-                description: 'Artist cover image URL'
-            },
-            genres: {
-                bsonType: 'array',
-                items: { bsonType: 'string' },
-                description: 'List of music genres'
-            },
-            socialLinks: {
-                bsonType: 'object',
-                properties: {
-                    spotify: { bsonType: 'string' },
-                    twitter: { bsonType: 'string' },
-                    instagram: { bsonType: 'string' }
-                }
-            },
-            stats: {
-                bsonType: 'object',
-                properties: {
-                    followers: {
-                        bsonType: 'number',
-                        minimum: 0
-                    },
-                    totalPlays: {
-                        bsonType: 'number',
-                        minimum: 0
-                    },
-                    totalTracks: {
-                        bsonType: 'number',
-                        minimum: 0
-                    },
-                    totalAlbums: {
-                        bsonType: 'number',
-                        minimum: 0
-                    }
-                }
-            },
-            createdAt: { bsonType: 'date' },
-            updatedAt: { bsonType: 'date' }
+            _id: objectIdField(),
+            name: stringField('Artist name is required'),
+            bio: stringField('Artist biography'),
+            avatar: stringField('Artist profile picture URL'),
+            coverImage: stringField('Artist cover image URL'),
+            genres: arrayField(stringField(), 'List of music genres'),
+            socialLinks: objectField({
+                spotify: stringField(),
+                twitter: stringField(),
+                instagram: stringField(),
+            }),
+            stats: objectField({
+                followers: intField(undefined, { minimum: 0 }),
+                totalPlays: intField(undefined, { minimum: 0 }),
+                totalTracks: intField(undefined, { minimum: 0 }),
+                totalAlbums: intField(undefined, { minimum: 0 }),
+            }),
+            createdAt: dateField(),
+            updatedAt: dateField(),
         }
     }
 };

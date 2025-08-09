@@ -1,95 +1,44 @@
-import { JsonSchemaValidator } from '@/lib/mongodb/types';
+import {
+    JsonSchemaValidator,
+    stringField,
+    intField,
+    boolField,
+    dateField,
+    objectIdField,
+    objectField
+} from '@/lib/mongodb/types';
 
 export const userSchemaValidator: JsonSchemaValidator = {
     $jsonSchema: {
         bsonType: 'object',
         required: ['clerkId', 'email', 'displayName', 'role', 'isActive'],
         properties: {
-            _id: {
-                bsonType: 'objectId'
-            },
-            clerkId: {
-                bsonType: 'string',
-                description: 'Clerk user ID is required'
-            },
-            email: {
-                bsonType: 'string',
-                description: 'Email address from Clerk is required'
-            },
-            username: {
-                bsonType: 'string'
-            },
-            displayName: {
-                bsonType: 'string',
-                description: 'Display name (combination of firstName and lastName from Clerk)'
-            },
-            avatar: {
-                bsonType: 'string',
-                description: 'Profile image URL from Clerk or custom uploaded image'
-            },
-            role: {
-                bsonType: 'string',
-                enum: ['user', 'admin'],
-                description: 'User role from Clerk public metadata'
-            },
-            subscription: {
-                bsonType: 'object',
-                properties: {
-                    type: {
-                        bsonType: 'string',
-                        enum: ['free', 'premium']
-                    },
-                    expiresAt: {
-                        bsonType: 'date'
-                    }
-                }
-            },
-            preferences: {
-                bsonType: 'object',
-                properties: {
-                    theme: {
-                        bsonType: 'string'
-                    },
-                    language: {
-                        bsonType: 'string'
-                    },
-                    notifications: {
-                        bsonType: 'bool'
-                    }
-                }
-            },
-            stats: {
-                bsonType: 'object',
-                properties: {
-                    totalPlays: {
-                        bsonType: 'number',
-                        minimum: 0
-                    },
-                    totalLikes: {
-                        bsonType: 'number',
-                        minimum: 0
-                    },
-                    storageUsed: {
-                        bsonType: 'number',
-                        minimum: 0
-                    }
-                }
-            },
-            createdAt: {
-                bsonType: 'date'
-            },
-            updatedAt: {
-                bsonType: 'date'
-            },
-            lastActiveAt: {
-                bsonType: 'date'
-            },
-            isActive: {
-                bsonType: 'bool'
-            },
-            isBanned: {
-                bsonType: 'bool'
-            }
+            _id: objectIdField(),
+            clerkId: stringField('Clerk user ID is required'),
+            email: stringField('Email address from Clerk is required'),
+            username: stringField(),
+            displayName: stringField('Display name (combination of firstName and lastName from Clerk)'),
+            avatar: stringField('Profile image URL from Clerk or custom uploaded image'),
+            role: stringField('User role from Clerk public metadata', { enum: ['user', 'admin'] }),
+            subscription: objectField({
+                type: stringField(undefined, { enum: ['free', 'premium'] }),
+                expiresAt: dateField(),
+            }),
+            preferences: objectField({
+                theme: stringField(),
+                language: stringField(),
+                notifications: boolField(),
+            }),
+            stats: objectField({
+                totalPlays: intField(undefined, { minimum: 0 }),
+                totalLikes: intField(undefined, { minimum: 0 }),
+                storageUsed: intField(undefined, { minimum: 0 }),
+            }),
+            createdAt: dateField(),
+            updatedAt: dateField(),
+            lastActiveAt: { bsonType: ['date', 'null'] },
+            isActive: boolField(),
+            isBanned: boolField(),
         }
     }
 };
@@ -118,7 +67,7 @@ export type User = {
     };
     createdAt: Date;
     updatedAt: Date;
-    lastActiveAt: Date;
+    lastActiveAt: Date | null;
     isActive: boolean;
     isBanned: boolean;
 }

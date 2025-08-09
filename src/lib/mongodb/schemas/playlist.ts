@@ -1,82 +1,44 @@
-import { JsonSchemaValidator } from '@/lib/mongodb/types';
+import {
+    JsonSchemaValidator,
+    stringField,
+    intField,
+    boolField,
+    dateField,
+    objectIdField,
+    arrayField,
+    objectField
+} from '@/lib/mongodb/types';
 import { Track } from './track';
 import { User } from './user';
+import { Collections } from '@/lib/constants/collections';
 
 export const playlistSchemaValidator: JsonSchemaValidator = {
     $jsonSchema: {
         bsonType: 'object',
         required: ['name', 'isPublic', 'isCollaborative'],
         properties: {
-            _id: {
-                bsonType: 'objectId'
-            },
-            name: {
-                bsonType: 'string',
-                description: 'Playlist name is required'
-            },
-            description: {
-                bsonType: 'string',
-                description: 'Description of the playlist'
-            },
-            coverImage: {
-                bsonType: 'string',
-                description: 'Playlist cover image URL'
-            },
-            tracks: {
-                bsonType: 'array',
-                items: {
-                    bsonType: 'objectId'
-                },
-                description: 'Array of Track IDs in the playlist'
-            },
-            isPublic: {
-                bsonType: 'bool',
-                description: 'Whether the playlist is publicly visible'
-            },
-            isCollaborative: {
-                bsonType: 'bool',
-                description: 'Whether other users can modify the playlist'
-            },
-            collaborators: {
-                bsonType: 'array',
-                items: {
-                    bsonType: 'objectId'
-                },
-                description: 'Array of User IDs who can collaborate on this playlist'
-            },
-            tags: {
-                bsonType: 'array',
-                items: {
-                    bsonType: 'string'
-                },
-                description: 'List of tags associated with the playlist'
-            },
-            stats: {
-                bsonType: 'object',
-                properties: {
-                    plays: {
-                        bsonType: 'number',
-                        minimum: 0,
-                        description: 'Number of times the playlist has been played'
-                    },
-                    likes: {
-                        bsonType: 'number',
-                        minimum: 0,
-                        description: 'Number of likes received'
-                    },
-                    followers: {
-                        bsonType: 'number',
-                        minimum: 0,
-                        description: 'Number of users following this playlist'
-                    }
-                }
-            },
-            createdAt: {
-                bsonType: 'date'
-            },
-            updatedAt: {
-                bsonType: 'date'
-            }
+            _id: objectIdField(),
+            name: stringField('Playlist name is required'),
+            description: stringField('Description of the playlist'),
+            coverImage: stringField('Playlist cover image URL'),
+            tracks: arrayField(
+                objectIdField(undefined, { refCollection: Collections.TRACKS }),
+                'Array of Track IDs in the playlist'
+            ),
+            isPublic: boolField('Whether the playlist is publicly visible'),
+            isCollaborative: boolField('Whether other users can modify the playlist'),
+            collaborators: arrayField(
+                objectIdField(undefined, { refCollection: Collections.USERS }),
+                'Array of User IDs who can collaborate on this playlist'
+            ),
+            tags: arrayField(stringField(), 'List of tags associated with the playlist'),
+            stats: objectField({
+                plays: intField('Number of times the playlist has been played', { minimum: 0 }),
+                likes: intField('Number of likes received', { minimum: 0 }),
+                followers: intField('Number of users following this playlist', { minimum: 0 }),
+            }),
+            createdAt: dateField(),
+            updatedAt: dateField(),
         }
     }
 };
