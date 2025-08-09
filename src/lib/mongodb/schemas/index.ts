@@ -4,4 +4,6 @@ export * from './play-history';
 export * from './playlist';
 export * from './track';
 export * from './user-liked-songs';
+export * from './user-liked-albums';
+export * from './user-liked-artists';
 export * from './user';

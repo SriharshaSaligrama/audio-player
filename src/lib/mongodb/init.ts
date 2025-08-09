@@ -2,7 +2,7 @@ import { Db } from 'mongodb';
 import { getDb } from '@/lib/mongodb/client';
 import { Collections } from '@/lib/constants/collections';
 import { JsonSchemaValidator } from '@/lib/mongodb/types';
-import { albumSchemaValidator, artistSchemaValidator, playlistSchemaValidator, trackSchemaValidator, userSchemaValidator, playHistorySchemaValidator, userLikedSongsSchemaValidator } from '@/lib/mongodb/schemas';
+import { albumSchemaValidator, artistSchemaValidator, playlistSchemaValidator, trackSchemaValidator, userSchemaValidator, playHistorySchemaValidator, userLikedSongsSchemaValidator, userLikedAlbumsSchemaValidator, userLikedArtistsSchemaValidator } from '@/lib/mongodb/schemas';
 
 
 async function createCollectionIfNotExists(db: Db, collectionName: string, validator: JsonSchemaValidator) {
@@ -83,6 +83,14 @@ async function createCollectionIfNotExists(db: Db, collectionName: string, valid
         await db.collection(collectionName).createIndex({ userId: 1, likedAt: -1 });
         await db.collection(collectionName).createIndex({ trackId: 1 });
         await db.collection(collectionName).createIndex({ userId: 1, trackId: 1 }, { unique: true });
+    } else if (collectionName === Collections.USER_LIKED_ALBUMS) {
+        await db.collection(collectionName).createIndex({ userId: 1, likedAt: -1 });
+        await db.collection(collectionName).createIndex({ albumId: 1 });
+        await db.collection(collectionName).createIndex({ userId: 1, albumId: 1 }, { unique: true });
+    } else if (collectionName === Collections.USER_LIKED_ARTISTS) {
+        await db.collection(collectionName).createIndex({ userId: 1, likedAt: -1 });
+        await db.collection(collectionName).createIndex({ artistId: 1 });
+        await db.collection(collectionName).createIndex({ userId: 1, artistId: 1 }, { unique: true });
     }
 }
 
@@ -99,6 +107,8 @@ export async function initializeDatabase() {
         await createCollectionIfNotExists(db, Collections.PLAYLISTS, playlistSchemaValidator);
         await createCollectionIfNotExists(db, Collections.PLAY_HISTORY, playHistorySchemaValidator);
         await createCollectionIfNotExists(db, Collections.USER_LIKED_SONGS, userLikedSongsSchemaValidator);
+        await createCollectionIfNotExists(db, Collections.USER_LIKED_ALBUMS, userLikedAlbumsSchemaValidator);
+        await createCollectionIfNotExists(db, Collections.USER_LIKED_ARTISTS, userLikedArtistsSchemaValidator);
 
         console.log('Database initialization completed');
     } catch (error) {

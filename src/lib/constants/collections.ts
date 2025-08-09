@@ -4,6 +4,8 @@ export const Collections = {
     PLAYLISTS: 'playlists',
     PLAY_HISTORY: 'play_history',
     TRACKS: 'tracks',
-    USERS: 'users',
     USER_LIKED_SONGS: 'user_liked_songs',
+    USER_LIKED_ALBUMS: 'user_liked_albums',
+    USER_LIKED_ARTISTS: 'user_liked_artists',
+    USERS: 'users',
 } as const;
