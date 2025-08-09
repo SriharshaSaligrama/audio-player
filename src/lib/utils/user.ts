@@ -23,5 +23,6 @@ export function transformClerkUser(clerkUser: UserJSON): CreateUser {
         createdAt: clerkUser.created_at ? new Date(clerkUser.created_at) : new Date(),
         updatedAt: clerkUser.updated_at ? new Date(clerkUser.updated_at) : new Date(),
         lastActiveAt: clerkUser.last_active_at ? new Date(clerkUser.last_active_at) : new Date(),
+        lastPlayedAt: null
     };
 }
