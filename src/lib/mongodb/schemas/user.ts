@@ -37,6 +37,7 @@ export const userSchemaValidator: JsonSchemaValidator = {
             createdAt: dateField(),
             updatedAt: dateField(),
             lastActiveAt: { bsonType: ['date', 'null'] },
+            lastPlayedAt: { bsonType: ['date', 'null'] },
             isActive: boolField(),
             isBanned: boolField(),
             isDeleted: boolField('Soft delete flag'),
@@ -71,6 +72,7 @@ export type User = {
     createdAt: Date;
     updatedAt: Date;
     lastActiveAt: Date | null;
+    lastPlayedAt: Date | null;
     isActive: boolean;
     isBanned: boolean;
     isDeleted?: boolean;

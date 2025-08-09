@@ -2,7 +2,7 @@ import { Db } from 'mongodb';
 import { getDb } from '@/lib/mongodb/client';
 import { Collections } from '@/lib/constants/collections';
 import { JsonSchemaValidator } from '@/lib/mongodb/types';
-import { albumSchemaValidator, artistSchemaValidator, playlistSchemaValidator, trackSchemaValidator, userSchemaValidator, playHistorySchemaValidator } from '@/lib/mongodb/schemas';
+import { albumSchemaValidator, artistSchemaValidator, playlistSchemaValidator, trackSchemaValidator, userSchemaValidator, playHistorySchemaValidator, userLikedSongsSchemaValidator } from '@/lib/mongodb/schemas';
 
 
 async function createCollectionIfNotExists(db: Db, collectionName: string, validator: JsonSchemaValidator) {
@@ -78,6 +78,11 @@ async function createCollectionIfNotExists(db: Db, collectionName: string, valid
         await db.collection(collectionName).createIndex({ "device.type": 1, playedAt: -1 });
         // Session tracking
         await db.collection(collectionName).createIndex({ "metadata.sessionId": 1, playedAt: 1 });
+    } else if (collectionName === Collections.USER_LIKED_SONGS) {
+        // Optimize user likes queries and uniqueness per (userId, trackId)
+        await db.collection(collectionName).createIndex({ userId: 1, likedAt: -1 });
+        await db.collection(collectionName).createIndex({ trackId: 1 });
+        await db.collection(collectionName).createIndex({ userId: 1, trackId: 1 }, { unique: true });
     }
 }
 
@@ -93,6 +98,7 @@ export async function initializeDatabase() {
         await createCollectionIfNotExists(db, Collections.TRACKS, trackSchemaValidator);
         await createCollectionIfNotExists(db, Collections.PLAYLISTS, playlistSchemaValidator);
         await createCollectionIfNotExists(db, Collections.PLAY_HISTORY, playHistorySchemaValidator);
+        await createCollectionIfNotExists(db, Collections.USER_LIKED_SONGS, userLikedSongsSchemaValidator);
 
         console.log('Database initialization completed');
     } catch (error) {
