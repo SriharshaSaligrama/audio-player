@@ -100,7 +100,7 @@ export const dateField = (
 
 export const objectIdField = (
     description?: string,
-    extras?: Omit<JsonSchemaDefinition, "bsonType" | "description"> & { refCollection?: string }
+    extras?: Omit<JsonSchemaDefinition, "bsonType" | "description">
 ) => field("objectId", description, extras);
 
 // ---------- Complex type helpers ----------

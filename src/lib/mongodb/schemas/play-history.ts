@@ -7,7 +7,7 @@ import {
     objectIdField,
     objectField
 } from '@/lib/mongodb/types';
-import { Collections } from '@/lib/constants/collections';
+// Collections import removed; JSON schema does not support refs
 
 export const playHistorySchemaValidator: JsonSchemaValidator = {
     $jsonSchema: {
@@ -15,16 +15,16 @@ export const playHistorySchemaValidator: JsonSchemaValidator = {
         required: ['userId', 'trackId', 'playedAt'],
         properties: {
             _id: objectIdField(),
-            userId: objectIdField('Reference to User document', { refCollection: Collections.USERS }),
-            trackId: objectIdField('Reference to Track document', { refCollection: Collections.TRACKS }),
+            userId: objectIdField('Reference to User document'),
+            trackId: objectIdField('Reference to Track document'),
             playedAt: dateField('Timestamp when the track was played'),
 
             // Discovery/context
             source: stringField('How the user accessed this track', {
                 enum: ['playlist', 'album', 'search', 'recommendation', 'direct', 'shuffle']
             }),
-            playlistId: objectIdField('If source is playlist, the playlist ID', { refCollection: Collections.PLAYLISTS }),
-            albumId: objectIdField('If source is album, the album ID', { refCollection: Collections.ALBUMS }),
+            playlistId: objectIdField('If source is playlist, the playlist ID'),
+            albumId: objectIdField('If source is album, the album ID'),
 
             // Engagement metrics
             durationListened: intField('Duration listened in seconds', { minimum: 0 }),

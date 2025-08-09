@@ -21,16 +21,15 @@ export const trackSchemaValidator: JsonSchemaValidator = {
             _id: objectIdField(),
             title: stringField('Track title is required'),
             artists: arrayField(
-                objectIdField(undefined, { refCollection: Collections.ARTISTS }),
+                objectIdField(),
                 'References to artist documents'
             ),
             albums: arrayField(
-                objectIdField(undefined, { refCollection: Collections.ALBUMS }),
+                objectIdField(),
                 'References to album documents this track appears in'
             ),
             defaultAlbum: objectIdField(
-                'Reference to the primary album this track belongs to',
-                { refCollection: Collections.ALBUMS }
+                'Reference to the primary album this track belongs to'
             ),
             genre: stringField('Primary genre of the track'),
             releaseDate: dateField('Track release date'),
@@ -51,7 +50,7 @@ export const trackSchemaValidator: JsonSchemaValidator = {
             isDeleted: boolField('Soft delete flag'),
             deletedAt: { bsonType: ['date', 'null'] },
             takedownReason: stringField('Reason for deletion', { enum: REASONS_BY_ENTITY[Collections.TRACKS] }),
-            replacedBy: objectIdField('Replaced by another track', { refCollection: Collections.TRACKS }),
+            replacedBy: objectIdField('Replaced by another track'),
         }
     }
 };

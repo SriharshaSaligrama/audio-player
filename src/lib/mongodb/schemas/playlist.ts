@@ -23,13 +23,13 @@ export const playlistSchemaValidator: JsonSchemaValidator = {
             description: stringField('Description of the playlist'),
             coverImage: stringField('Playlist cover image URL'),
             tracks: arrayField(
-                objectIdField(undefined, { refCollection: Collections.TRACKS }),
+                objectIdField(),
                 'Array of Track IDs in the playlist'
             ),
             isPublic: boolField('Whether the playlist is publicly visible'),
             isCollaborative: boolField('Whether other users can modify the playlist'),
             collaborators: arrayField(
-                objectIdField(undefined, { refCollection: Collections.USERS }),
+                objectIdField(),
                 'Array of User IDs who can collaborate on this playlist'
             ),
             tags: arrayField(stringField(), 'List of tags associated with the playlist'),
@@ -43,7 +43,7 @@ export const playlistSchemaValidator: JsonSchemaValidator = {
             isDeleted: boolField('Soft delete flag'),
             deletedAt: { bsonType: ['date', 'null'] },
             takedownReason: stringField('Reason for deletion', { enum: REASONS_BY_ENTITY[Collections.PLAYLISTS] }),
-            replacedBy: objectIdField('Replaced by another playlist', { refCollection: Collections.PLAYLISTS }),
+            replacedBy: objectIdField('Replaced by another playlist'),
         }
     }
 };

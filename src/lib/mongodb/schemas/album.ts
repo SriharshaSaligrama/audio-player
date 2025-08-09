@@ -20,7 +20,7 @@ export const albumSchemaValidator: JsonSchemaValidator = {
             _id: objectIdField(),
             title: stringField('Album title is required'),
             artists: arrayField(
-                objectIdField(undefined, { refCollection: Collections.ARTISTS }),
+                objectIdField(),
                 'References to artist documents'
             ),
             releaseDate: dateField('Album release date'),
@@ -40,7 +40,7 @@ export const albumSchemaValidator: JsonSchemaValidator = {
             isDeleted: boolField('Soft delete flag'),
             deletedAt: { bsonType: ['date', 'null'] },
             takedownReason: stringField('Reason for deletion', { enum: REASONS_BY_ENTITY[Collections.ALBUMS] }),
-            replacedBy: objectIdField('Replaced by another album', { refCollection: Collections.ALBUMS }),
+            replacedBy: objectIdField('Replaced by another album'),
         }
     }
 };

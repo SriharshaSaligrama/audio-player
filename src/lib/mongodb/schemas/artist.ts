@@ -38,7 +38,7 @@ export const artistSchemaValidator: JsonSchemaValidator = {
             isDeleted: boolField('Soft delete flag'),
             deletedAt: { bsonType: ['date', 'null'] },
             takedownReason: stringField('Reason for deletion', { enum: REASONS_BY_ENTITY[Collections.ARTISTS] }),
-            replacedBy: objectIdField('Replaced by another artist', { refCollection: Collections.ARTISTS }),
+            replacedBy: objectIdField('Replaced by another artist'),
         }
     }
 };
