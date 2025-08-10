@@ -8,14 +8,14 @@ import {
     arrayField,
     objectField
 } from '@/lib/mongodb/types';
-import { Artist } from '@/lib/mongodb/schemas/artist';
 import { Collections } from '@/lib/constants/collections';
 import { REASONS_BY_ENTITY, TakedownReason } from '@/lib/constants/enums';
+import { ObjectId } from 'mongodb';
 
 export const albumSchemaValidator: JsonSchemaValidator = {
     $jsonSchema: {
         bsonType: 'object',
-        required: ['title', 'artists', 'releaseDate', 'totalTracks', 'totalDuration'],
+        required: ['title', 'artists', 'releaseDate'],
         properties: {
             _id: objectIdField(),
             title: stringField('Album title is required'),
@@ -28,7 +28,7 @@ export const albumSchemaValidator: JsonSchemaValidator = {
             description: stringField('Album description or background information'),
             genres: arrayField(stringField(), 'List of music genres for the album'),
             label: stringField('Record label that published the album'),
-            totalTracks: intField('Total number of tracks in the album', { minimum: 1 }),
+            totalTracks: intField('Total number of tracks in the album', { minimum: 0 }),
             totalDuration: intField('Total duration of the album in seconds', { minimum: 0 }),
             stats: objectField({
                 plays: intField('Number of times the album has been played', { minimum: 0 }),
@@ -48,7 +48,7 @@ export const albumSchemaValidator: JsonSchemaValidator = {
 export type Album = {
     _id: string;
     title: string;
-    artists: Artist[];
+    artists: string[] | ObjectId[];
     releaseDate: Date;
     coverImage?: string;
     description?: string;
