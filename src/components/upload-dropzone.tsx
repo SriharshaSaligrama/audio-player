@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Upload, Music, FileAudio, CheckCircle, AlertCircle } from "lucide-react";
+import { Upload, FileAudio, CheckCircle, AlertCircle } from "lucide-react";
 
 type UploadResult = { url: string; pathname: string };
 
@@ -78,12 +78,12 @@ export function UploadDropzone({ folder, onUploaded, accept, className, label = 
     return (
         <div
             className={`relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 ${dragOver
-                    ? "border-green-400 bg-green-50 dark:bg-green-900/20 dark:border-green-500"
-                    : error
-                        ? "border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-500"
-                        : uploadComplete
-                            ? "border-green-400 bg-green-50 dark:bg-green-900/20 dark:border-green-500"
-                            : "border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 hover:border-green-400 dark:hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/20"
+                ? "border-green-400 bg-green-50 dark:bg-green-900/20 dark:border-green-500"
+                : error
+                    ? "border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-500"
+                    : uploadComplete
+                        ? "border-green-400 bg-green-50 dark:bg-green-900/20 dark:border-green-500"
+                        : "border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 hover:border-green-400 dark:hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/20"
                 } ${className ?? ""}`}
             onClick={() => inputRef.current?.click()}
             onDragOver={(e) => {
@@ -162,8 +162,8 @@ export function UploadDropzone({ folder, onUploaded, accept, className, label = 
             ) : (
                 <div className="space-y-4">
                     <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center ${dragOver
-                            ? "bg-green-500 scale-110"
-                            : "bg-gradient-to-br from-gray-400 to-gray-500 dark:from-gray-500 dark:to-gray-600"
+                        ? "bg-green-500 scale-110"
+                        : "bg-gradient-to-br from-gray-400 to-gray-500 dark:from-gray-500 dark:to-gray-600"
                         } transition-all duration-200`}>
                         {isAudio ? (
                             <FileAudio className="w-8 h-8 text-white" />
