@@ -29,7 +29,7 @@ export async function createAlbum(_prev: AlbumFormState = initialState, formData
             releaseDate: formData.get('releaseDate') ? new Date(String(formData.get('releaseDate'))) : new Date(),
             coverImage: String(formData.get('coverImage') || ''),
             description: String(formData.get('description') || ''),
-            genres: (String(formData.get('genres') || '')).split(',').map((t) => t.trim()).filter(Boolean),
+            genres: (formData.getAll('genres') || []).map(String).filter(Boolean),
             label: String(formData.get('label') || ''),
         };
 
@@ -95,7 +95,7 @@ export async function updateAlbum(_prev: AlbumFormState = initialState, formData
             releaseDate: formData.get('releaseDate') ? new Date(String(formData.get('releaseDate'))) : null,
             coverImage: String(formData.get('coverImage') || ''),
             description: String(formData.get('description') || ''),
-            genres: (String(formData.get('genres') || '')).split(',').map((t) => t.trim()).filter(Boolean),
+            genres: (formData.getAll('genres') || []).map(String).filter(Boolean),
             label: String(formData.get('label') || ''),
         };
 
@@ -142,7 +142,11 @@ export async function softDeleteAlbum(albumId: string, reason: string) {
             { $set: { isDeleted: true, deletedAt: new Date(), takedownReason: reason } }
         );
     } catch (error) {
-        try { handleActionError({ error, source: 'softDeleteAlbum', details: { albumId, reason } }); } catch (e) { const err = e as CustomError; return { success: false, message: err.message }; }
+        try {
+            handleActionError({ error, source: 'softDeleteAlbum', details: { albumId, reason } });
+        } catch (e) {
+            const err = e as CustomError; return { success: false, message: err.message };
+        }
     }
 
     (await cookies()).set('admin_success_message', 'album_deleted', {

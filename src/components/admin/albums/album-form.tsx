@@ -2,11 +2,14 @@
 
 import { useActionState, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Save, X, Disc3, Image as ImageIcon, Calendar, Users, Tag, Building2, FileText, Sparkles } from 'lucide-react';
+import Image from 'next/image';
+import { Save, X, Disc3, Image as ImageIcon, Users, Tag, Building2, FileText, Sparkles } from 'lucide-react';
 import type { AlbumFormState } from '@/actions/admin/albums';
 import { createAlbum, updateAlbum } from '@/actions/admin/albums';
 import { CardImageUploader } from '@/components/admin/card-image-uploader';
 import { AutocompleteInput } from '@/components/admin/autocomplete-input';
+import { CalendarInput } from '@/components/admin/calendar-input';
+import { GenreTagInput } from '@/components/admin/genre-tag-input';
 import { BLOB_FOLDERS } from '@/lib/constants/images';
 import type { Option, CreateInitial, EditInitial } from '@/types/common';
 
@@ -20,12 +23,15 @@ export type AlbumInitialData = {
     genres?: string[];
     label?: string;
     coverImagePath?: string;
+    isDeleted?: boolean;
+    deletedAt?: string | null;
+    takedownReason?: string;
     // add more fields if needed
 };
 
 type Props =
-    | { mode: 'create'; artists: Option[]; initial?: CreateInitial<AlbumInitialData> }
-    | { mode: 'edit'; artists: Option[]; initial: EditInitial<AlbumInitialData> };
+    | { mode: 'create'; artists: Option[]; initial?: CreateInitial<AlbumInitialData>; readonly?: never }
+    | { mode: 'edit'; artists: Option[]; initial: EditInitial<AlbumInitialData>; readonly?: boolean };
 
 function getInitialField<K extends keyof AlbumInitialData>(
     mode: 'create' | 'edit',
@@ -41,7 +47,7 @@ function getInitialField<K extends keyof AlbumInitialData>(
 
 const initialState: AlbumFormState = { success: false };
 
-export function AlbumForm({ mode, artists, initial }: Props) {
+export function AlbumForm({ mode, artists, initial, readonly = false }: Props) {
     const action = mode === 'create' ? createAlbum : updateAlbum;
     const [state, formAction, isPending] = useActionState<AlbumFormState, FormData>(action, initialState);
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -62,6 +68,7 @@ export function AlbumForm({ mode, artists, initial }: Props) {
     const initialCoverImage = getInitialField(mode, initial, 'coverImage', '') as string;
     const [coverImage, setCoverImage] = useState<string>(initialCoverImage);
     const [selectedArtists, setSelectedArtists] = useState<string[]>((getInitialField(mode, initial, 'artists', []) as string[]).map(String));
+    const [selectedGenres, setSelectedGenres] = useState<string[]>((getInitialField(mode, initial, 'genres', []) as string[]));
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -100,11 +107,15 @@ export function AlbumForm({ mode, artists, initial }: Props) {
                             <div className="relative">
                                 <input
                                     name="title"
-                                    required
+                                    required={!readonly}
+                                    readOnly={readonly}
                                     defaultValue={String(getInitialField(mode, initial, 'title', '') || '')}
-                                    onChange={() => clearError('title')}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-base"
-                                    placeholder="Enter album title"
+                                    onChange={() => !readonly && clearError('title')}
+                                    className={`w-full px-4 py-3 rounded-xl border text-base transition-all duration-200 ${readonly
+                                        ? 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 cursor-not-allowed'
+                                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                                        }`}
+                                    placeholder={readonly ? '' : "Enter album title"}
                                 />
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                                     <Disc3 className="h-5 w-5 text-gray-400" />
@@ -122,14 +133,15 @@ export function AlbumForm({ mode, artists, initial }: Props) {
                             name="artistIds"
                             options={artists}
                             value={selectedArtists}
-                            onChange={setSelectedArtists}
-                            placeholder="Search and select artists..."
+                            onChange={readonly ? () => { } : setSelectedArtists}
+                            placeholder={readonly ? '' : "Search and select artists..."}
                             multiple={true}
-                            required={true}
+                            required={!readonly}
                             label="Artists"
                             icon={<Users className="h-5 w-5 text-gray-400" />}
-                            error={errors.artistIds}
-                            onClearError={() => clearError('artistIds')}
+                            error={readonly ? undefined : errors.artistIds}
+                            onClearError={() => !readonly && clearError('artistIds')}
+                            disabled={readonly}
                         />
 
                         <div>
@@ -138,11 +150,15 @@ export function AlbumForm({ mode, artists, initial }: Props) {
                             </label>
                             <textarea
                                 name="description"
+                                readOnly={readonly}
                                 defaultValue={String(getInitialField(mode, initial, 'description', '') || '')}
-                                onChange={() => clearError('description')}
+                                onChange={() => !readonly && clearError('description')}
                                 rows={4}
-                                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
-                                placeholder="Describe this album..."
+                                className={`w-full px-4 py-3 rounded-xl border resize-none transition-all duration-200 ${readonly
+                                    ? 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 cursor-not-allowed'
+                                    : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                                    }`}
+                                placeholder={readonly ? '' : "Describe this album..."}
                             />
                         </div>
                     </div>
@@ -156,30 +172,16 @@ export function AlbumForm({ mode, artists, initial }: Props) {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Release Date *
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type="date"
-                                    name="releaseDate"
-                                    required
-                                    defaultValue={String(getInitialField(mode, initial, 'releaseDate', '')).slice(0, 10)}
-                                    onChange={() => clearError('releaseDate')}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                                />
-                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <Calendar className="h-5 w-5 text-gray-400" />
-                                </div>
-                            </div>
-                            {errors.releaseDate && (
-                                <div className="mt-2 flex items-center gap-2 text-red-600 dark:text-red-400">
-                                    <div className="w-1 h-1 rounded-full bg-red-500"></div>
-                                    <p className="text-sm">{errors.releaseDate}</p>
-                                </div>
-                            )}
-                        </div>
+                        <CalendarInput
+                            name="releaseDate"
+                            value={String(getInitialField(mode, initial, 'releaseDate', '') || '')}
+                            required={!readonly}
+                            readOnly={readonly}
+                            label="Release Date"
+                            placeholder="Select release date"
+                            error={readonly ? undefined : errors.releaseDate}
+                            onClearError={() => !readonly && clearError('releaseDate')}
+                        />
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -188,10 +190,14 @@ export function AlbumForm({ mode, artists, initial }: Props) {
                             <div className="relative">
                                 <input
                                     name="label"
+                                    readOnly={readonly}
                                     defaultValue={String(getInitialField(mode, initial, 'label', '') || '')}
-                                    onChange={() => clearError('label')}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                                    placeholder="Record label name"
+                                    onChange={() => !readonly && clearError('label')}
+                                    className={`w-full px-4 py-3 rounded-xl border transition-all duration-200 ${readonly
+                                        ? 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 cursor-not-allowed'
+                                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                                        }`}
+                                    placeholder={readonly ? '' : "Record label name"}
                                 />
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                                     <Building2 className="h-5 w-5 text-gray-400" />
@@ -201,22 +207,17 @@ export function AlbumForm({ mode, artists, initial }: Props) {
                     </div>
 
                     <div className="mt-6">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Genres
-                        </label>
-                        <div className="relative">
-                            <input
-                                name="genres"
-                                defaultValue={(getInitialField(mode, initial, 'genres', []) as string[]).join(', ')}
-                                onChange={() => clearError('genres')}
-                                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                                placeholder="Rock, Pop, Alternative (comma separated)"
-                            />
-                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                <Tag className="h-5 w-5 text-gray-400" />
-                            </div>
-                        </div>
-                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Separate multiple genres with commas</p>
+                        <GenreTagInput
+                            name="genres"
+                            value={selectedGenres}
+                            onChange={readonly ? undefined : setSelectedGenres}
+                            label="Genres"
+                            placeholder="Type to add genres..."
+                            readOnly={readonly}
+                            error={readonly ? undefined : errors.genres}
+                            onClearError={() => !readonly && clearError('genres')}
+                            maxTags={6}
+                        />
                     </div>
                 </div>
 
@@ -228,17 +229,43 @@ export function AlbumForm({ mode, artists, initial }: Props) {
                     </div>
 
                     <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-6">
-                        <CardImageUploader
-                            name="coverImage"
-                            folder={BLOB_FOLDERS.albums}
-                            initialUrl={coverImage}
-                            onUploaded={(res) => setCoverImage(res.url)}
-                            entityId={String(initial?._id || '')}
-                            oldPathname={String(getInitialField(mode, initial, 'coverImagePath', '') || '')}
-                        />
-                        <p className="mt-3 text-xs text-gray-500 dark:text-gray-400 text-center">
-                            Upload a high-quality square image (recommended: 1000x1000px or larger)
-                        </p>
+                        {readonly ? (
+                            <div className="text-center">
+                                {coverImage ? (
+                                    <div className="relative w-48 h-48 mx-auto rounded-xl overflow-hidden border border-gray-200 dark:border-gray-600">
+                                        <Image
+                                            src={coverImage}
+                                            alt="Album cover"
+                                            width={192}
+                                            height={192}
+                                            className="object-cover"
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="w-48 h-48 mx-auto rounded-xl bg-gray-200 dark:bg-gray-600 flex items-center justify-center border border-gray-200 dark:border-gray-600">
+                                        <ImageIcon className="h-12 w-12 text-gray-400" />
+                                    </div>
+                                )}
+                                <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                                    {coverImage ? 'Album cover image' : 'No cover image'}
+                                </p>
+                            </div>
+                        ) : (
+                            <>
+                                <CardImageUploader
+                                    key={`album-cover-${coverImage || 'no-cover'}`}
+                                    name="coverImage"
+                                    folder={BLOB_FOLDERS.albums}
+                                    initialUrl={coverImage}
+                                    onUploaded={(res) => setCoverImage(res.url)}
+                                    entityId={String(initial?._id || '')}
+                                    oldPathname={String(getInitialField(mode, initial, 'coverImagePath', '') || '')}
+                                />
+                                <p className="mt-3 text-xs text-gray-500 dark:text-gray-400 text-center">
+                                    Upload a high-quality square image (recommended: 1000x1000px or larger)
+                                </p>
+                            </>
+                        )}
                     </div>
                 </div>
 
@@ -249,47 +276,49 @@ export function AlbumForm({ mode, artists, initial }: Props) {
                         className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 shadow-sm"
                     >
                         <X className="h-4 w-4" />
-                        Cancel
+                        {readonly ? 'Back' : 'Cancel'}
                     </Link>
 
-                    <div className="flex items-center gap-4">
-                        {state?.message && (
-                            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${state.success
-                                ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800'
-                                : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
-                                }`}>
-                                <div className={`w-2 h-2 rounded-full ${state.success ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                                {state.message}
-                            </div>
-                        )}
-
-                        <button
-                            type="submit"
-                            disabled={isPending}
-                            className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 rounded-xl shadow-lg hover:shadow-xl disabled:shadow-sm transition-all duration-200 disabled:cursor-not-allowed transform hover:scale-105 disabled:scale-100"
-                        >
-                            {isPending ? (
-                                <>
-                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white" />
-                                    {mode === 'create' ? 'Creating Album...' : 'Saving Changes...'}
-                                </>
-                            ) : (
-                                <>
-                                    {mode === 'create' ? (
-                                        <>
-                                            <Sparkles className="h-4 w-4" />
-                                            Create Album
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="h-4 w-4" />
-                                            Save Changes
-                                        </>
-                                    )}
-                                </>
+                    {!readonly && (
+                        <div className="flex items-center gap-4">
+                            {state?.message && (
+                                <div className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${state.success
+                                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800'
+                                    : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
+                                    }`}>
+                                    <div className={`w-2 h-2 rounded-full ${state.success ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                    {state.message}
+                                </div>
                             )}
-                        </button>
-                    </div>
+
+                            <button
+                                type="submit"
+                                disabled={isPending}
+                                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 rounded-xl shadow-lg hover:shadow-xl disabled:shadow-sm transition-all duration-200 disabled:cursor-not-allowed transform hover:scale-105 disabled:scale-100"
+                            >
+                                {isPending ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white" />
+                                        {mode === 'create' ? 'Creating Album...' : 'Saving Changes...'}
+                                    </>
+                                ) : (
+                                    <>
+                                        {mode === 'create' ? (
+                                            <>
+                                                <Sparkles className="h-4 w-4" />
+                                                Create Album
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="h-4 w-4" />
+                                                Save Changes
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    )}
                 </div>
             </form>
         </div>

@@ -3,6 +3,7 @@ import {
 } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ConditionalLayout } from "@/components/layout/conditional-layout";
 
 import "./globals.css";
 import { ensureDbInitialized } from "@/lib/mongodb/init";
@@ -47,7 +48,9 @@ export default function RootLayout({
                         disableTransitionOnChange={false}
                         forcedTheme={undefined}
                     >
-                        {children}
+                        <ConditionalLayout>
+                            {children}
+                        </ConditionalLayout>
                     </ThemeProvider>
                 </body>
             </html>

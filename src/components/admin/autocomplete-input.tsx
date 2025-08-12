@@ -17,6 +17,7 @@ type Props = {
     label?: string;
     error?: string;
     onClearError?: () => void;
+    disabled?: boolean;
 };
 
 export function AutocompleteInput({
@@ -31,7 +32,8 @@ export function AutocompleteInput({
     icon,
     label,
     error,
-    onClearError
+    onClearError,
+    disabled = false
 }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -58,6 +60,8 @@ export function AutocompleteInput({
     }, []);
 
     const handleSelect = (option: Option) => {
+        if (disabled) return;
+
         let newValues: string[];
 
         if (multiple) {
@@ -82,6 +86,8 @@ export function AutocompleteInput({
     };
 
     const handleRemove = (valueToRemove: string) => {
+        if (disabled) return;
+
         const newValues = selectedValues.filter(v => v !== valueToRemove);
         setSelectedValues(newValues);
         onChange?.(newValues);
@@ -89,11 +95,15 @@ export function AutocompleteInput({
     };
 
     const handleInputFocus = () => {
+        if (disabled) return;
+
         setIsOpen(true);
         onClearError?.();
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (disabled) return;
+
         setSearchTerm(e.target.value);
         if (!isOpen) setIsOpen(true);
     };
@@ -127,11 +137,13 @@ export function AutocompleteInput({
 
                 {/* Main input container */}
                 <div
-                    className={`relative w-full min-h-[48px] px-4 py-3 rounded-xl border ${error
-                        ? 'border-red-300 dark:border-red-600'
-                        : 'border-gray-300 dark:border-gray-600'
-                        } bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all duration-200 cursor-text`}
-                    onClick={() => inputRef.current?.focus()}
+                    className={`relative w-full min-h-[48px] px-4 py-3 rounded-xl border transition-all duration-200 ${disabled
+                        ? 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 cursor-not-allowed'
+                        : error
+                            ? 'border-red-300 dark:border-red-600 bg-white dark:bg-gray-700 cursor-text focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent'
+                            : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 cursor-text focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent'
+                        } text-gray-900 dark:text-white`}
+                    onClick={() => !disabled && inputRef.current?.focus()}
                 >
                     <div className="flex flex-wrap items-center gap-2 min-h-[24px]">
                         {/* Selected items */}
@@ -141,16 +153,18 @@ export function AutocompleteInput({
                                 className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 rounded-lg text-sm font-medium"
                             >
                                 <span>{option.label}</span>
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleRemove(option.value);
-                                    }}
-                                    className="ml-1 hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full p-0.5 transition-colors"
-                                >
-                                    <X className="h-3 w-3" />
-                                </button>
+                                {!disabled && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleRemove(option.value);
+                                        }}
+                                        className="ml-1 hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full p-0.5 transition-colors"
+                                    >
+                                        <X className="h-3 w-3" />
+                                    </button>
+                                )}
                             </div>
                         ))}
 
@@ -161,8 +175,12 @@ export function AutocompleteInput({
                             value={searchTerm}
                             onChange={handleInputChange}
                             onFocus={handleInputFocus}
-                            placeholder={selectedValues.length === 0 ? placeholder : (multiple ? '' : 'Search to change selection...')}
-                            className="flex-1 min-w-[120px] bg-transparent border-none outline-none placeholder-gray-500 dark:placeholder-gray-400 text-sm"
+                            disabled={disabled}
+                            placeholder={disabled ? '' : (selectedValues.length === 0 ? placeholder : (multiple ? '' : 'Search to change selection...'))}
+                            className={`flex-1 min-w-[120px] bg-transparent border-none outline-none text-sm ${disabled
+                                ? 'cursor-not-allowed text-gray-500 dark:text-gray-400'
+                                : 'placeholder-gray-500 dark:placeholder-gray-400'
+                                }`}
                         />
                     </div>
 
@@ -177,7 +195,7 @@ export function AutocompleteInput({
                 </div>
 
                 {/* Dropdown */}
-                {isOpen && (
+                {isOpen && !disabled && (
                     <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg max-h-60 overflow-auto">
                         {filteredOptions.length === 0 ? (
                             <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">

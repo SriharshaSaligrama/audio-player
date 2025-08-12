@@ -2,15 +2,18 @@
 
 import { useActionState, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Save, X, Music, Users, Disc3, Calendar, Clock, Tag, Upload, Image as ImageIcon, FileText, Sparkles } from 'lucide-react';
+import { Save, X, Music, Users, Disc3, Clock, Tag, Upload, Image as ImageIcon, FileText, Sparkles } from 'lucide-react';
 import type { TrackFormState } from '@/actions/admin/tracks';
 import { createTrack, updateTrack } from '@/actions/admin/tracks';
 import { UploadDropzone } from '@/components/upload-dropzone';
 import { CardImageUploader } from '@/components/admin/card-image-uploader';
 import { AutocompleteInput } from '@/components/admin/autocomplete-input';
+import { CalendarInput } from '@/components/admin/calendar-input';
+import { GenreTagInput } from '@/components/admin/genre-tag-input';
 import { BLOB_FOLDERS } from '@/lib/constants/images';
 import type { Option, CreateInitial, EditInitial } from '@/types/common';
 import { ObjectId } from 'mongodb';
+import { extractAudioMetadata, formatDuration } from '@/lib/utils/audio';
 
 export type TrackInitialData = {
     _id?: string | ObjectId;
@@ -22,7 +25,7 @@ export type TrackInitialData = {
     albums?: string[];
     releaseDate?: string; // ISO string
     duration?: number;
-    genre?: string;
+    genres?: string[];
     tags?: string[];
     coverImagePath?: string;
     description?: string;
@@ -73,6 +76,11 @@ export function TrackForm({ mode, artists, albums, initial }: Props) {
     const [selectedArtists, setSelectedArtists] = useState<string[]>((getInitialField(mode, initial, 'artists', []) as string[]).map(String));
     const [selectedAlbums, setSelectedAlbums] = useState<string[]>((getInitialField(mode, initial, 'albums', []) as string[]).map(String));
     const [selectedDefaultAlbum, setSelectedDefaultAlbum] = useState<string[]>(defaultAlbumId ? [defaultAlbumId] : []);
+    const [selectedGenres, setSelectedGenres] = useState<string[]>(() => {
+        const genreValue = getInitialField(mode, initial, 'genres', []);
+        return genreValue ? genreValue.map(g => g.trim()).filter(Boolean) : [];
+    });
+    const [audioMetadata, setAudioMetadata] = useState<{ duration: number; fileSize: number } | null>(null);
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -183,70 +191,63 @@ export function TrackForm({ mode, artists, albums, initial }: Props) {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Release Date *
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type="date"
-                                    name="releaseDate"
-                                    required
-                                    defaultValue={String(getInitialField(mode, initial, 'releaseDate', '')).slice(0, 10)}
-                                    onChange={() => clearError('releaseDate')}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                                />
-                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <Calendar className="h-5 w-5 text-gray-400" />
-                                </div>
-                            </div>
-                            {errors.releaseDate && (
-                                <div className="mt-2 flex items-center gap-2 text-red-600 dark:text-red-400">
-                                    <div className="w-1 h-1 rounded-full bg-red-500"></div>
-                                    <p className="text-sm">{errors.releaseDate}</p>
-                                </div>
-                            )}
-                        </div>
+                        <CalendarInput
+                            name="releaseDate"
+                            value={String(getInitialField(mode, initial, 'releaseDate', '') || '')}
+                            required={true}
+                            label="Release Date"
+                            placeholder="Select release date"
+                            error={errors.releaseDate}
+                            onClearError={() => clearError('releaseDate')}
+                        />
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Duration (seconds)
+                                Duration
                             </label>
                             <div className="relative">
-                                <input
-                                    type="number"
-                                    name="duration"
-                                    min={0}
-                                    defaultValue={Number(getInitialField(mode, initial, 'duration', 0) || '')}
-                                    onChange={() => clearError('duration')}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                                    placeholder="180"
-                                />
+                                <div className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white">
+                                    {audioMetadata?.duration ? formatDuration(audioMetadata.duration) :
+                                        mode === 'edit' && getInitialField(mode, initial, 'duration', 0) ?
+                                            formatDuration(Number(getInitialField(mode, initial, 'duration', 0))) :
+                                            'Upload audio file to detect duration'}
+                                </div>
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                                     <Clock className="h-5 w-5 text-gray-400" />
                                 </div>
                             </div>
+                            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                Duration will be automatically detected from the uploaded audio file
+                                {audioMetadata?.fileSize && (
+                                    <span className="ml-2">• File size: {(audioMetadata.fileSize / (1024 * 1024)).toFixed(2)} MB</span>
+                                )}
+                            </p>
+                            {/* Hidden input to submit the duration */}
+                            <input
+                                type="hidden"
+                                name="duration"
+                                value={audioMetadata?.duration || getInitialField(mode, initial, 'duration', 0) || 0}
+                            />
+                            {/* Hidden input to submit the file size */}
+                            <input
+                                type="hidden"
+                                name="fileSize"
+                                value={audioMetadata?.fileSize || 0}
+                            />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Genre
-                            </label>
-                            <div className="relative">
-                                <input
-                                    name="genre"
-                                    defaultValue={String(getInitialField(mode, initial, 'genre', '') || '')}
-                                    onChange={() => clearError('genre')}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                                    placeholder="Rock, Pop, Jazz..."
-                                />
-                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <Music className="h-5 w-5 text-gray-400" />
-                                </div>
-                            </div>
-                        </div>
+                        <GenreTagInput
+                            name="genres"
+                            value={selectedGenres}
+                            onChange={setSelectedGenres}
+                            label="Genres"
+                            placeholder="Type to add genres..."
+                            error={errors.genre}
+                            onClearError={() => clearError('genre')}
+                            maxTags={8}
+                        />
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -281,6 +282,16 @@ export function TrackForm({ mode, artists, albums, initial }: Props) {
                         <UploadDropzone
                             folder={BLOB_FOLDERS.tracks}
                             onUploaded={(res) => setFileUrl(res.url)}
+                            onFileSelected={async (file) => {
+                                try {
+                                    const metadata = await extractAudioMetadata(file);
+                                    setAudioMetadata(metadata);
+                                    clearError('duration');
+                                } catch (error) {
+                                    console.error('Failed to extract audio metadata:', error);
+                                    setAudioMetadata({ duration: 0, fileSize: file.size });
+                                }
+                            }}
                             accept="audio/*"
                             label={fileUrl ? 'Replace uploaded file' : 'Upload audio file'}
                         />
@@ -310,6 +321,7 @@ export function TrackForm({ mode, artists, albums, initial }: Props) {
 
                     <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-6">
                         <CardImageUploader
+                            key={`track-cover-${coverImage || 'no-cover'}`}
                             name="coverImage"
                             folder={BLOB_FOLDERS.tracks}
                             initialUrl={coverImage}

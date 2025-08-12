@@ -26,6 +26,7 @@ export function CardImageUploader({ name, folder, ratio = 1, initialUrl, onUploa
     const [progress, setProgress] = useState<number>(0);
     const [showCropper, setShowCropper] = useState(false);
     const [pendingSrc, setPendingSrc] = useState<string | null>(null);
+    const [dragOver, setDragOver] = useState(false);
 
     // Sync internal state when initialUrl changes
     useEffect(() => {
@@ -62,8 +63,10 @@ export function CardImageUploader({ name, folder, ratio = 1, initialUrl, onUploa
             }
             const json = (await response.json()) as UploadResult;
             setProgress(100);
-            setImageUrl(json.url);
-            onUploaded?.(json);
+            // Add cache-busting timestamp to force refresh
+            const newUrl = `${json.url}?t=${Date.now()}`;
+            setImageUrl(newUrl);
+            onUploaded?.({ ...json, url: newUrl });
         } catch (e) {
             console.error(e);
             clearInterval(timer);
@@ -109,11 +112,24 @@ export function CardImageUploader({ name, folder, ratio = 1, initialUrl, onUploa
                     <button
                         type="button"
                         onClick={openFile}
-                        className="relative w-full h-full rounded-2xl overflow-hidden bg-gradient-to-br from-white via-gray-50 to-white dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/25 transform hover:scale-[1.01] active:scale-[0.99]"
+                        onDragOver={(e) => {
+                            e.preventDefault();
+                            setDragOver(true);
+                        }}
+                        onDragLeave={() => setDragOver(false)}
+                        onDrop={(e) => {
+                            e.preventDefault();
+                            setDragOver(false);
+                            onFiles(e.dataTransfer.files);
+                        }}
+                        className={`relative w-full h-full rounded-2xl overflow-hidden bg-gradient-to-br from-white via-gray-50 to-white dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center border-2 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/25 transform hover:scale-[1.01] active:scale-[0.99] ${dragOver
+                            ? 'border-solid border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                            : imageUrl
+                                ? 'border-solid border-blue-300/30 dark:border-blue-600/30'
+                                : 'border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
+                            }`}
                         style={{
-                            background: imageUrl ? 'transparent' : undefined,
-                            borderStyle: imageUrl ? 'solid' : 'dashed',
-                            borderColor: imageUrl ? 'rgba(59, 130, 246, 0.3)' : undefined
+                            background: imageUrl && !dragOver ? 'transparent' : undefined
                         }}
                         aria-label={label}
                     >
@@ -125,6 +141,8 @@ export function CardImageUploader({ name, folder, ratio = 1, initialUrl, onUploa
                                     fill
                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                     className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                    unoptimized={imageUrl?.includes('blob.vercel-storage.com')}
+                                    key={imageUrl}
                                 />
                                 {/* Gradient overlay */}
                                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -148,8 +166,18 @@ export function CardImageUploader({ name, folder, ratio = 1, initialUrl, onUploa
                                         <div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '0.5s' }}></div>
                                     </div>
                                     <div className="space-y-2">
-                                        <div className="text-base font-semibold text-gray-800 dark:text-gray-200">{label}</div>
-                                        <div className="text-sm text-gray-600 dark:text-gray-400">Click to browse or drag & drop</div>
+                                        <div className={`text-base font-semibold transition-colors ${dragOver
+                                            ? 'text-blue-700 dark:text-blue-300'
+                                            : 'text-gray-800 dark:text-gray-200'
+                                            }`}>
+                                            {dragOver ? 'Drop image here' : label}
+                                        </div>
+                                        <div className={`text-sm transition-colors ${dragOver
+                                            ? 'text-blue-600 dark:text-blue-400'
+                                            : 'text-gray-600 dark:text-gray-400'
+                                            }`}>
+                                            {dragOver ? 'Release to upload' : 'Click to browse or drag & drop'}
+                                        </div>
                                         <div className="text-xs text-gray-500 dark:text-gray-500">
                                             JPG, PNG, WebP supported
                                         </div>

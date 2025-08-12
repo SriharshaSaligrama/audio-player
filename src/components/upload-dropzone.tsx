@@ -8,12 +8,13 @@ type UploadResult = { url: string; pathname: string };
 type Props = {
     folder: string;
     onUploaded: (res: UploadResult) => void;
+    onFileSelected?: (file: File) => void;
     accept?: string;
     className?: string;
     label?: string;
 };
 
-export function UploadDropzone({ folder, onUploaded, accept, className, label = "Drop file or click to upload" }: Props) {
+export function UploadDropzone({ folder, onUploaded, onFileSelected, accept, className, label = "Drop file or click to upload" }: Props) {
     const inputRef = useRef<HTMLInputElement>(null);
     const [progress, setProgress] = useState<number>(0);
     const [dragOver, setDragOver] = useState(false);
@@ -70,6 +71,12 @@ export function UploadDropzone({ folder, onUploaded, accept, className, label = 
             setError("Unsupported file type");
             return;
         }
+
+        // Call the file selected callback if provided
+        if (onFileSelected) {
+            onFileSelected(file);
+        }
+
         upload(file);
     };
 

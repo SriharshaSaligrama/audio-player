@@ -31,6 +31,18 @@ export default async function AdminArtistsPage() {
                 </Link>
             </div>
 
+            {artists.length === 0 && (
+                <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 theme-transition">
+                    <Users className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No artists found</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">Get started by creating your first artist.</p>
+                    <Link href="/admin/artists/new" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-all duration-200 text-sm font-medium btn-transition shadow-sm hover:shadow-md">
+                        <Plus className="h-4 w-4" />
+                        Add First Artist
+                    </Link>
+                </div>
+            )}
+
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {artists.map((artist) => (
                     <Link
@@ -46,6 +58,9 @@ export default async function AdminArtistsPage() {
                                     src={artist.coverImage}
                                     alt={`${artist.name} cover`}
                                     fill
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                    priority={artists.indexOf(artist) < 3}
+                                    unoptimized={artist.coverImage.includes('blob.vercel-storage.com')}
                                     className="object-cover"
                                 />
                             ) : (
@@ -176,18 +191,6 @@ export default async function AdminArtistsPage() {
                     </Link>
                 ))}
             </div>
-
-            {artists.length === 0 && (
-                <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 theme-transition">
-                    <Users className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No artists found</h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">Get started by creating your first artist.</p>
-                    <Link href="/admin/artists/new" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-all duration-200 text-sm font-medium btn-transition shadow-sm hover:shadow-md">
-                        <Plus className="h-4 w-4" />
-                        Add First Artist
-                    </Link>
-                </div>
-            )}
         </div>
     );
 }

@@ -2,11 +2,13 @@
 
 import { useActionState, useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Save, X, User, Image as ImageIcon, Globe, Music, FileText, Hash, Sparkles } from 'lucide-react';
 import type { ArtistFormState } from '@/actions/admin/artists';
 import { createArtist, updateArtist } from '@/actions/admin/artists';
 import { AvatarUploader } from '@/components/admin/avatar-uploader';
 import { CardImageUploader } from '@/components/admin/card-image-uploader';
+import { GenreTagInput } from '@/components/admin/genre-tag-input';
 import { BLOB_FOLDERS } from '@/lib/constants/images';
 import type { CreateInitial, EditInitial } from '@/types/common';
 
@@ -21,16 +23,19 @@ type ArtistInitialData = {
         twitter?: string;
         instagram?: string;
     };
+    isDeleted?: boolean;
+    deletedAt?: string | null;
+    takedownReason?: string;
     [key: string]: unknown;  // to allow other possible fields
 };
 
 type Props<T = unknown> =
-    | { mode: 'create'; initial?: CreateInitial<T> }
-    | { mode: 'edit'; initial: EditInitial<T> };
+    | { mode: 'create'; initial?: CreateInitial<T>; readonly?: never }
+    | { mode: 'edit'; initial: EditInitial<T>; readonly?: boolean };
 
 const initialState: ArtistFormState = { success: false };
 
-export function ArtistForm({ mode, initial }: Props<ArtistInitialData>) {
+export function ArtistForm({ mode, initial, readonly = false }: Props<ArtistInitialData>) {
     const action = mode === 'create' ? createArtist : updateArtist;
     const [state, formAction, isPending] = useActionState<ArtistFormState, FormData>(action, initialState);
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -50,6 +55,7 @@ export function ArtistForm({ mode, initial }: Props<ArtistInitialData>) {
 
     const [avatar, setAvatar] = useState<string>(String(initial?.avatar || ''));
     const [coverImage, setCoverImage] = useState<string>(String(initial?.coverImage || ''));
+    const [selectedGenres, setSelectedGenres] = useState<string[]>((initial?.genres as string[] | undefined) || []);
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -88,11 +94,15 @@ export function ArtistForm({ mode, initial }: Props<ArtistInitialData>) {
                             <div className="relative">
                                 <input
                                     name="name"
-                                    required
+                                    required={!readonly}
+                                    readOnly={readonly}
                                     defaultValue={String(initial?.name || '')}
-                                    onChange={() => clearError('name')}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-base"
-                                    placeholder="Enter artist name"
+                                    onChange={() => !readonly && clearError('name')}
+                                    className={`w-full px-4 py-3 rounded-xl border text-base transition-all duration-200 ${readonly
+                                        ? 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 cursor-not-allowed'
+                                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                                        }`}
+                                    placeholder={readonly ? '' : "Enter artist name"}
                                 />
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                                     <User className="h-5 w-5 text-gray-400" />
@@ -112,32 +122,29 @@ export function ArtistForm({ mode, initial }: Props<ArtistInitialData>) {
                             </label>
                             <textarea
                                 name="bio"
+                                readOnly={readonly}
                                 defaultValue={String(initial?.bio || '')}
-                                onChange={() => clearError('bio')}
+                                onChange={() => !readonly && clearError('bio')}
                                 rows={4}
-                                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 resize-none"
-                                placeholder="Tell us about this artist..."
+                                className={`w-full px-4 py-3 rounded-xl border resize-none transition-all duration-200 ${readonly
+                                    ? 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 cursor-not-allowed'
+                                    : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                                    }`}
+                                placeholder={readonly ? '' : "Tell us about this artist..."}
                             />
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Genres
-                            </label>
-                            <div className="relative">
-                                <input
-                                    name="genres"
-                                    defaultValue={(initial?.genres as string[] | undefined)?.join?.(', ') ?? ''}
-                                    onChange={() => clearError('genres')}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                                    placeholder="Rock, Pop, Jazz (comma separated)"
-                                />
-                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <Music className="h-5 w-5 text-gray-400" />
-                                </div>
-                            </div>
-                            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Separate multiple genres with commas</p>
-                        </div>
+                        <GenreTagInput
+                            name="genres"
+                            value={selectedGenres}
+                            onChange={readonly ? undefined : setSelectedGenres}
+                            label="Genres"
+                            placeholder="Type to add genres..."
+                            readOnly={readonly}
+                            error={readonly ? undefined : errors.genres}
+                            onClearError={() => !readonly && clearError('genres')}
+                            maxTags={8}
+                        />
                     </div>
                 </div>
 
@@ -154,17 +161,40 @@ export function ArtistForm({ mode, initial }: Props<ArtistInitialData>) {
                                 Profile Avatar
                             </label>
                             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-                                <AvatarUploader
-                                    key={avatar || 'no-avatar'}
-                                    name="avatar"
-                                    folder={BLOB_FOLDERS.artists}
-                                    initialUrl={avatar}
-                                    onUploaded={(res) => {
-                                        setAvatar(res.url);
-                                    }}
-                                    entityId={String(initial?._id || '')}
-                                    oldPathname={String(initial?.avatarPath || '')}
-                                />
+                                {readonly ? (
+                                    <div className="text-center">
+                                        {avatar ? (
+                                            <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden border border-gray-200 dark:border-gray-600">
+                                                <Image
+                                                    src={avatar}
+                                                    alt="Artist avatar"
+                                                    width={128}
+                                                    height={128}
+                                                    className="object-cover"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div className="w-32 h-32 mx-auto rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center border border-gray-200 dark:border-gray-600">
+                                                <User className="h-12 w-12 text-gray-400" />
+                                            </div>
+                                        )}
+                                        <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                                            {avatar ? 'Profile avatar' : 'No avatar'}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <AvatarUploader
+                                        key={`avatar-${avatar || 'no-avatar'}`}
+                                        name="avatar"
+                                        folder={BLOB_FOLDERS.artists}
+                                        initialUrl={avatar}
+                                        onUploaded={(res) => {
+                                            setAvatar(res.url);
+                                        }}
+                                        entityId={String(initial?._id || '')}
+                                        oldPathname={String(initial?.avatarPath || '')}
+                                    />
+                                )}
                             </div>
                         </div>
 
@@ -173,17 +203,40 @@ export function ArtistForm({ mode, initial }: Props<ArtistInitialData>) {
                                 Cover Image
                             </label>
                             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-                                <CardImageUploader
-                                    key={coverImage || 'no-cover'}
-                                    name="coverImage"
-                                    folder={BLOB_FOLDERS.artists}
-                                    initialUrl={coverImage}
-                                    onUploaded={(res) => {
-                                        setCoverImage(res.url);
-                                    }}
-                                    entityId={String(initial?._id || '')}
-                                    oldPathname={String(initial?.coverImagePath || '')}
-                                />
+                                {readonly ? (
+                                    <div className="text-center">
+                                        {coverImage ? (
+                                            <div className="relative w-48 h-32 mx-auto rounded-xl overflow-hidden border border-gray-200 dark:border-gray-600">
+                                                <Image
+                                                    src={coverImage}
+                                                    alt="Artist cover"
+                                                    width={192}
+                                                    height={128}
+                                                    className="object-cover"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div className="w-48 h-32 mx-auto rounded-xl bg-gray-200 dark:bg-gray-600 flex items-center justify-center border border-gray-200 dark:border-gray-600">
+                                                <ImageIcon className="h-12 w-12 text-gray-400" />
+                                            </div>
+                                        )}
+                                        <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                                            {coverImage ? 'Cover image' : 'No cover image'}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <CardImageUploader
+                                        key={`cover-${coverImage || 'no-cover'}`}
+                                        name="coverImage"
+                                        folder={BLOB_FOLDERS.artists}
+                                        initialUrl={coverImage}
+                                        onUploaded={(res) => {
+                                            setCoverImage(res.url);
+                                        }}
+                                        entityId={String(initial?._id || '')}
+                                        oldPathname={String(initial?.coverImagePath || '')}
+                                    />
+                                )}
                             </div>
                         </div>
                     </div>
@@ -204,10 +257,14 @@ export function ArtistForm({ mode, initial }: Props<ArtistInitialData>) {
                             <div className="relative">
                                 <input
                                     name="spotify"
+                                    readOnly={readonly}
                                     defaultValue={String(initial?.socialLinks?.spotify || '')}
-                                    onChange={() => clearError('spotify')}
-                                    className="w-full px-4 py-3 pl-10 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                                    placeholder="Spotify profile URL"
+                                    onChange={() => !readonly && clearError('spotify')}
+                                    className={`w-full px-4 py-3 pl-10 rounded-xl border transition-all duration-200 ${readonly
+                                        ? 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 cursor-not-allowed'
+                                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent'
+                                        }`}
+                                    placeholder={readonly ? '' : "Spotify profile URL"}
                                 />
                                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                     <div className="w-5 h-5 rounded bg-green-500 flex items-center justify-center">
@@ -224,10 +281,14 @@ export function ArtistForm({ mode, initial }: Props<ArtistInitialData>) {
                             <div className="relative">
                                 <input
                                     name="twitter"
+                                    readOnly={readonly}
                                     defaultValue={String(initial?.socialLinks?.twitter || '')}
-                                    onChange={() => clearError('twitter')}
-                                    className="w-full px-4 py-3 pl-10 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                                    placeholder="Twitter profile URL"
+                                    onChange={() => !readonly && clearError('twitter')}
+                                    className={`w-full px-4 py-3 pl-10 rounded-xl border transition-all duration-200 ${readonly
+                                        ? 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 cursor-not-allowed'
+                                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                                        }`}
+                                    placeholder={readonly ? '' : "Twitter profile URL"}
                                 />
                                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                     <div className="w-5 h-5 rounded bg-blue-500 flex items-center justify-center">
@@ -244,10 +305,14 @@ export function ArtistForm({ mode, initial }: Props<ArtistInitialData>) {
                             <div className="relative">
                                 <input
                                     name="instagram"
+                                    readOnly={readonly}
                                     defaultValue={String(initial?.socialLinks?.instagram || '')}
-                                    onChange={() => clearError('instagram')}
-                                    className="w-full px-4 py-3 pl-10 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200"
-                                    placeholder="Instagram profile URL"
+                                    onChange={() => !readonly && clearError('instagram')}
+                                    className={`w-full px-4 py-3 pl-10 rounded-xl border transition-all duration-200 ${readonly
+                                        ? 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 cursor-not-allowed'
+                                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-pink-500 focus:border-transparent'
+                                        }`}
+                                    placeholder={readonly ? '' : "Instagram profile URL"}
                                 />
                                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                     <div className="w-5 h-5 rounded bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
@@ -266,47 +331,49 @@ export function ArtistForm({ mode, initial }: Props<ArtistInitialData>) {
                         className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 shadow-sm"
                     >
                         <X className="h-4 w-4" />
-                        Cancel
+                        {readonly ? 'Back' : 'Cancel'}
                     </Link>
 
-                    <div className="flex items-center gap-4">
-                        {state?.message && (
-                            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${state.success
-                                ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800'
-                                : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
-                                }`}>
-                                <div className={`w-2 h-2 rounded-full ${state.success ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                                {state.message}
-                            </div>
-                        )}
-
-                        <button
-                            type="submit"
-                            disabled={isPending}
-                            className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-400 disabled:to-gray-500 rounded-xl shadow-lg hover:shadow-xl disabled:shadow-sm transition-all duration-200 disabled:cursor-not-allowed transform hover:scale-105 disabled:scale-100"
-                        >
-                            {isPending ? (
-                                <>
-                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white" />
-                                    {mode === 'create' ? 'Creating Artist...' : 'Saving Changes...'}
-                                </>
-                            ) : (
-                                <>
-                                    {mode === 'create' ? (
-                                        <>
-                                            <Sparkles className="h-4 w-4" />
-                                            Create Artist
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="h-4 w-4" />
-                                            Save Changes
-                                        </>
-                                    )}
-                                </>
+                    {!readonly && (
+                        <div className="flex items-center gap-4">
+                            {state?.message && (
+                                <div className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${state.success
+                                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800'
+                                    : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
+                                    }`}>
+                                    <div className={`w-2 h-2 rounded-full ${state.success ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                    {state.message}
+                                </div>
                             )}
-                        </button>
-                    </div>
+
+                            <button
+                                type="submit"
+                                disabled={isPending}
+                                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-400 disabled:to-gray-500 rounded-xl shadow-lg hover:shadow-xl disabled:shadow-sm transition-all duration-200 disabled:cursor-not-allowed transform hover:scale-105 disabled:scale-100"
+                            >
+                                {isPending ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white" />
+                                        {mode === 'create' ? 'Creating Artist...' : 'Saving Changes...'}
+                                    </>
+                                ) : (
+                                    <>
+                                        {mode === 'create' ? (
+                                            <>
+                                                <Sparkles className="h-4 w-4" />
+                                                Create Artist
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="h-4 w-4" />
+                                                Save Changes
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    )}
                 </div>
             </form>
         </div>

@@ -6,6 +6,8 @@ import { TrackForm } from '@/components/admin/tracks/track-form';
 import { DeleteDialog } from '@/components/admin/delete-dialog';
 import { Collections } from '@/lib/constants/collections';
 import { Album, Artist } from '@/lib/mongodb/schemas';
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 export default async function EditTrackPage({ params }: { params: Promise<{ id: string }> }) {
     const isAdmin = await checkRole('admin');
@@ -16,8 +18,8 @@ export default async function EditTrackPage({ params }: { params: Promise<{ id: 
     const _id = new ObjectId(id);
     const [track, artists, albums] = await Promise.all([
         db.collection('tracks').findOne({ _id }),
-        db.collection('artists').find({}, { projection: { name: 1 } }).toArray(),
-        db.collection('albums').find({}, { projection: { title: 1 } }).toArray(),
+        db.collection('artists').find({ isDeleted: { $ne: true } }, { projection: { name: 1 } }).toArray(),
+        db.collection('albums').find({ isDeleted: { $ne: true } }, { projection: { title: 1 } }).toArray(),
     ]);
 
     if (!track) redirect('/admin/tracks');
@@ -39,7 +41,13 @@ export default async function EditTrackPage({ params }: { params: Promise<{ id: 
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-semibold">Edit Track</h1>
+                <Link
+                    href="/admin/tracks"
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
+                >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to Tracks
+                </Link>
                 <DeleteDialog entity={Collections.TRACKS} id={id} />
             </div>
             <TrackForm

@@ -149,7 +149,8 @@ export function ImageCropper({ open, src, aspect = 1, onCancel, onCropped, title
                                 sizes={`${Math.round(frameWidth)}px`}
                                 unoptimized
                                 className="pointer-events-none select-none will-change-transform"
-                                onLoadingComplete={(img) => {
+                                onLoad={(e) => {
+                                    const img = e.target as HTMLImageElement;
                                     setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
                                     const cover = Math.max(frameWidth / img.naturalWidth, frameHeight / img.naturalHeight);
                                     setBaseScale(cover);

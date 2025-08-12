@@ -8,10 +8,9 @@ import {
     arrayField,
     objectField
 } from '@/lib/mongodb/types';
-import { Artist } from './artist';
-import { Album } from './album';
 import { Collections } from '@/lib/constants/collections';
 import { REASONS_BY_ENTITY, TakedownReason } from '@/lib/constants/enums';
+import { ObjectId } from 'mongodb';
 
 export const trackSchemaValidator: JsonSchemaValidator = {
     $jsonSchema: {
@@ -31,7 +30,7 @@ export const trackSchemaValidator: JsonSchemaValidator = {
             defaultAlbum: objectIdField(
                 'Reference to the primary album this track belongs to'
             ),
-            genre: stringField('Primary genre of the track'),
+            genres: arrayField(stringField(), 'List of music genres for the track'),
             releaseDate: dateField('Track release date'),
             duration: intField('Track duration in seconds', { minimum: 0 }),
             fileUrl: stringField('Vercel Blob URL for the audio file'),
@@ -58,10 +57,10 @@ export const trackSchemaValidator: JsonSchemaValidator = {
 export type Track = {
     _id: string;
     title: string;
-    artists: Artist[];
-    albums: Album[];
+    artists: string[] | ObjectId[];
+    albums: string[] | ObjectId[];
     defaultAlbum: string;
-    genre: string;
+    genres: string[];
     releaseDate: Date;
     duration: number; // in seconds
     fileUrl: string; // Vercel Blob URL
