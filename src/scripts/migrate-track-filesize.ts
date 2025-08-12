@@ -13,12 +13,18 @@ export async function migrateTrackFileSize() {
 
         // Find tracks without fileSize
         const tracksWithoutFileSize = await db.collection(Collections.TRACKS).find({
-            $or: [
-                { fileSize: { $exists: false } },
-                { fileSize: 0 }
-            ],
-            fileUrl: { $exists: true, $ne: '' },
-            $or: [{ isDeleted: { $exists: false } }, { isDeleted: false }]
+            $and: [
+                {
+                    $or: [
+                        { fileSize: { $exists: false } },
+                        { fileSize: 0 }
+                    ]
+                },
+                { fileUrl: { $exists: true, $ne: '' } },
+                {
+                    $or: [{ isDeleted: { $exists: false } }, { isDeleted: false }]
+                }
+            ]
         }).toArray();
 
         console.log(`Found ${tracksWithoutFileSize.length} tracks without fileSize`);
@@ -49,7 +55,7 @@ export async function migrateTrackFileSize() {
         return { success: true, updated };
     } catch (error) {
         console.error('Migration failed:', error);
-        return { success: false, error: error.message };
+        return { success: false, error: error instanceof Error ? error.message : String(error) };
     }
 }
 
