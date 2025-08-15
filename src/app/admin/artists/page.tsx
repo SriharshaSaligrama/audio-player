@@ -46,7 +46,7 @@ export default async function AdminArtistsPage() {
                 </div>
             )}
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 ">
+            <div className="grid gap-4 sm:gap-6 md:grid-cols-2 2xl:grid-cols-3">
                 {artists.map((artist) => (
                     <Link
                         key={String(artist._id)}
@@ -123,18 +123,18 @@ export default async function AdminArtistsPage() {
 
                         {/* Enhanced Stats Grid - HORIZONTAL LAYOUT */}
                         {artist.stats && (
-                            <div className="mx-6 mb-4 bg-gradient-to-r from-gray-100/90 to-gray-200/90 dark:from-gray-700/50 dark:to-gray-800/50 rounded-2xl p-4 border-2 border-gray-300/60 dark:border-gray-600/50 shadow-sm shadow-gray-200/50 dark:shadow-none">
-                                <div className="grid grid-cols-2 gap-6">
+                            <div className="mx-4 sm:mx-6 mb-4 bg-gradient-to-r from-gray-100/90 to-gray-200/90 dark:from-gray-700/50 dark:to-gray-800/50 rounded-2xl p-3 sm:p-4 border-2 border-gray-300/60 dark:border-gray-600/50 shadow-sm shadow-gray-200/50 dark:shadow-none">
+                                <div className="grid grid-cols-2 gap-3 sm:gap-6">
                                     {/* Total Plays - Horizontal Layout */}
-                                    <div className="flex items-center gap-3 group/stat">
+                                    <div className="flex items-center gap-2 sm:gap-3 group/stat">
                                         <div className="relative">
-                                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-lg group-hover/stat:scale-110 transition-transform duration-300">
-                                                <Play className="h-4 w-4 text-white ml-0.5" fill="currentColor" />
+                                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-lg group-hover/stat:scale-110 transition-transform duration-300 flex-shrink-0">
+                                                <Play className="h-3 w-3 sm:h-4 sm:w-4 text-white ml-0.5" fill="currentColor" />
                                             </div>
                                             <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full opacity-0 group-hover/stat:opacity-20 blur-lg transition-opacity duration-500" />
                                         </div>
-                                        <div className="text-left">
-                                            <div className="text-lg font-bold text-gray-900 dark:text-white">
+                                        <div className="text-left min-w-0">
+                                            <div className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">
                                                 {formatNumber(artist.stats.totalPlays)}
                                             </div>
                                             <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -144,15 +144,15 @@ export default async function AdminArtistsPage() {
                                     </div>
 
                                     {/* Followers - Horizontal Layout */}
-                                    <div className="flex items-center gap-3 group/stat">
+                                    <div className="flex items-center gap-2 sm:gap-3 group/stat">
                                         <div className="relative">
-                                            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center shadow-lg group-hover/stat:scale-110 transition-transform duration-300">
-                                                <Users className="h-4 w-4 text-white" />
+                                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center shadow-lg group-hover/stat:scale-110 transition-transform duration-300 flex-shrink-0">
+                                                <Users className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                                             </div>
                                             <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full opacity-0 group-hover/stat:opacity-20 blur-lg transition-opacity duration-500" />
                                         </div>
-                                        <div className="text-left">
-                                            <div className="text-lg font-bold text-gray-900 dark:text-white">
+                                        <div className="text-left min-w-0">
+                                            <div className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">
                                                 {formatNumber(artist.stats.followers)}
                                             </div>
                                             <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -162,15 +162,15 @@ export default async function AdminArtistsPage() {
                                     </div>
 
                                     {/* Tracks - Horizontal Layout */}
-                                    <div className="flex items-center gap-3 group/stat">
+                                    <div className="flex items-center gap-2 sm:gap-3 group/stat">
                                         <div className="relative">
-                                            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg group-hover/stat:scale-110 transition-transform duration-300">
-                                                <Music className="h-4 w-4 text-white" />
+                                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg group-hover/stat:scale-110 transition-transform duration-300 flex-shrink-0">
+                                                <Music className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                                             </div>
                                             <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full opacity-0 group-hover/stat:opacity-20 blur-lg transition-opacity duration-500" />
                                         </div>
-                                        <div className="text-left">
-                                            <div className="text-lg font-bold text-gray-900 dark:text-white">
+                                        <div className="text-left min-w-0">
+                                            <div className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">
                                                 {artist.stats.totalTracks || 0}
                                             </div>
                                             <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -180,15 +180,15 @@ export default async function AdminArtistsPage() {
                                     </div>
 
                                     {/* Albums - Horizontal Layout */}
-                                    <div className="flex items-center gap-3 group/stat">
+                                    <div className="flex items-center gap-2 sm:gap-3 group/stat">
                                         <div className="relative">
-                                            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-lg group-hover/stat:scale-110 transition-transform duration-300">
-                                                <Disc className="h-4 w-4 text-white" />
+                                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-lg group-hover/stat:scale-110 transition-transform duration-300 flex-shrink-0">
+                                                <Disc className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                                             </div>
                                             <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 to-red-500 rounded-full opacity-0 group-hover/stat:opacity-20 blur-lg transition-opacity duration-500" />
                                         </div>
-                                        <div className="text-left">
-                                            <div className="text-lg font-bold text-gray-900 dark:text-white">
+                                        <div className="text-left min-w-0">
+                                            <div className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">
                                                 {artist.stats.totalAlbums || 0}
                                             </div>
                                             <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">

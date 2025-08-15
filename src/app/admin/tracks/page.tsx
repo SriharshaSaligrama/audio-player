@@ -91,7 +91,7 @@ export default async function AdminTracksPage() {
                 </div>
             )}
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:gap-6 md:grid-cols-2 2xl:grid-cols-3">
                 {tracks.map((track) => {
                     const isDeleted = track.isDeleted;
                     const hasDeletedArtists = track.artistDetails?.some((artist) => artist.isDeleted);
@@ -154,7 +154,7 @@ export default async function AdminTracksPage() {
 
                                     {/* Track Info */}
                                     <div className="flex-1 min-w-0 max-w-full">
-                                        <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 line-clamp-2 leading-tight truncate">
+                                        <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 line-clamp-2 leading-tight truncate">
                                             {track.title}
                                         </h3>
 
@@ -240,18 +240,18 @@ export default async function AdminTracksPage() {
 
                             {/* Enhanced Stats Section - HORIZONTAL LAYOUT */}
                             {track.stats && (
-                                <div className="mx-6 mb-4 bg-gradient-to-r from-gray-100/90 to-gray-200/90 dark:from-gray-700/50 dark:to-gray-800/50 rounded-2xl p-4 border-2 border-gray-300/60 dark:border-gray-600/50 shadow-sm shadow-gray-200/50 dark:shadow-none">
-                                    <div className="flex items-center justify-center gap-8">
+                                <div className="mx-4 sm:mx-6 mb-4 bg-gradient-to-r from-gray-100/90 to-gray-200/90 dark:from-gray-700/50 dark:to-gray-800/50 rounded-2xl p-3 sm:p-4 border-2 border-gray-300/60 dark:border-gray-600/50 shadow-sm shadow-gray-200/50 dark:shadow-none">
+                                    <div className="flex items-center justify-center gap-4 sm:gap-8">
                                         {/* Plays - Horizontal Layout */}
-                                        <div className="flex items-center gap-4 group/stat">
+                                        <div className="flex items-center gap-2 sm:gap-4 group/stat">
                                             <div className="relative">
-                                                <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-lg group-hover/stat:scale-110 transition-transform duration-300">
-                                                    <Play className="h-5 w-5 text-white ml-0.5" fill="currentColor" />
+                                                <div className="w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-lg group-hover/stat:scale-110 transition-transform duration-300 flex-shrink-0">
+                                                    <Play className="h-3 w-3 sm:h-4 sm:w-4 text-white ml-0.5" fill="currentColor" />
                                                 </div>
                                                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full opacity-0 group-hover/stat:opacity-20 blur-lg transition-opacity duration-500" />
                                             </div>
-                                            <div className="text-left">
-                                                <div className="text-xl font-bold text-gray-900 dark:text-white">
+                                            <div className="text-left min-w-0">
+                                                <div className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
                                                     {formatNumber(track.stats.plays)}
                                                 </div>
                                                 <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -261,15 +261,15 @@ export default async function AdminTracksPage() {
                                         </div>
 
                                         {/* Likes - Horizontal Layout */}
-                                        <div className="flex items-center gap-4 group/stat">
+                                        <div className="flex items-center gap-2 sm:gap-4 group/stat">
                                             <div className="relative">
-                                                <div className="w-7 h-7 bg-gradient-to-br from-red-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg group-hover/stat:scale-110 transition-transform duration-300">
-                                                    <Heart className="h-5 w-5 text-white" fill="currentColor" />
+                                                <div className="w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-br from-red-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg group-hover/stat:scale-110 transition-transform duration-300 flex-shrink-0">
+                                                    <Heart className="h-3 w-3 sm:h-4 sm:w-4 text-white" fill="currentColor" />
                                                 </div>
                                                 <div className="absolute -inset-1 bg-gradient-to-r from-red-500 to-pink-500 rounded-full opacity-0 group-hover/stat:opacity-20 blur-lg transition-opacity duration-500" />
                                             </div>
-                                            <div className="text-left">
-                                                <div className="text-xl font-bold text-gray-900 dark:text-white">
+                                            <div className="text-left min-w-0">
+                                                <div className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
                                                     {formatNumber(track.stats.likes)}
                                                 </div>
                                                 <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
