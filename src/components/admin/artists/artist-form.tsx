@@ -7,7 +7,6 @@ import { Save, X, User, Image as ImageIcon, Globe, Music, FileText, Hash, Sparkl
 import type { ArtistFormState } from '@/actions/admin/artists';
 import { createArtist, updateArtist } from '@/actions/admin/artists';
 import { AvatarUploader } from '@/components/admin/avatar-uploader';
-import { CardImageUploader } from '@/components/admin/card-image-uploader';
 import { GenreTagInput } from '@/components/admin/genre-tag-input';
 import { BLOB_FOLDERS } from '@/lib/constants/images';
 import type { CreateInitial, EditInitial } from '@/types/common';
@@ -15,7 +14,6 @@ import type { CreateInitial, EditInitial } from '@/types/common';
 type ArtistInitialData = {
     name?: string;
     avatar?: string;
-    coverImage?: string;
     bio?: string;
     genres?: string[];
     socialLinks?: {
@@ -54,8 +52,8 @@ export function ArtistForm({ mode, initial, readonly = false }: Props<ArtistInit
     };
 
     const [avatar, setAvatar] = useState<string>(String(initial?.avatar || ''));
-    const [coverImage, setCoverImage] = useState<string>(String(initial?.coverImage || ''));
     const [selectedGenres, setSelectedGenres] = useState<string[]>((initial?.genres as string[] | undefined) || []);
+    const [artistName, setArtistName] = useState<string>(String(initial?.name || ''));
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -96,8 +94,13 @@ export function ArtistForm({ mode, initial, readonly = false }: Props<ArtistInit
                                     name="name"
                                     required={!readonly}
                                     readOnly={readonly}
-                                    defaultValue={String(initial?.name || '')}
-                                    onChange={() => !readonly && clearError('name')}
+                                    value={artistName}
+                                    onChange={(e) => {
+                                        if (!readonly) {
+                                            setArtistName(e.target.value);
+                                            clearError('name');
+                                        }
+                                    }}
                                     className={`w-full px-4 py-3 rounded-xl border text-base transition-all duration-200 ${readonly
                                         ? 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 cursor-not-allowed'
                                         : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent'
@@ -155,89 +158,42 @@ export function ArtistForm({ mode, initial, readonly = false }: Props<ArtistInit
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Media Assets</h2>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                Profile Avatar
-                            </label>
-                            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-                                {readonly ? (
-                                    <div className="text-center">
-                                        {avatar ? (
-                                            <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden border border-gray-200 dark:border-gray-600">
-                                                <Image
-                                                    src={avatar}
-                                                    alt="Artist avatar"
-                                                    width={128}
-                                                    height={128}
-                                                    className="object-cover"
-                                                />
-                                            </div>
-                                        ) : (
-                                            <div className="w-32 h-32 mx-auto rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center border border-gray-200 dark:border-gray-600">
-                                                <User className="h-12 w-12 text-gray-400" />
-                                            </div>
-                                        )}
-                                        <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                                            {avatar ? 'Profile avatar' : 'No avatar'}
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <AvatarUploader
-                                        key={`avatar-${avatar || 'no-avatar'}`}
-                                        name="avatar"
-                                        folder={BLOB_FOLDERS.artists}
-                                        initialUrl={avatar}
-                                        onUploaded={(res) => {
-                                            setAvatar(res.url);
-                                        }}
-                                        entityId={String(initial?._id || '')}
-                                        oldPathname={String(initial?.avatarPath || '')}
-                                    />
-                                )}
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                Cover Image
-                            </label>
-                            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-                                {readonly ? (
-                                    <div className="text-center">
-                                        {coverImage ? (
-                                            <div className="relative w-48 h-32 mx-auto rounded-xl overflow-hidden border border-gray-200 dark:border-gray-600">
-                                                <Image
-                                                    src={coverImage}
-                                                    alt="Artist cover"
-                                                    width={192}
-                                                    height={128}
-                                                    className="object-cover"
-                                                />
-                                            </div>
-                                        ) : (
-                                            <div className="w-48 h-32 mx-auto rounded-xl bg-gray-200 dark:bg-gray-600 flex items-center justify-center border border-gray-200 dark:border-gray-600">
-                                                <ImageIcon className="h-12 w-12 text-gray-400" />
-                                            </div>
-                                        )}
-                                        <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                                            {coverImage ? 'Cover image' : 'No cover image'}
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <CardImageUploader
-                                        key={`cover-${coverImage || 'no-cover'}`}
-                                        name="coverImage"
-                                        folder={BLOB_FOLDERS.artists}
-                                        initialUrl={coverImage}
-                                        onUploaded={(res) => {
-                                            setCoverImage(res.url);
-                                        }}
-                                        entityId={String(initial?._id || '')}
-                                        oldPathname={String(initial?.coverImagePath || '')}
-                                    />
-                                )}
-                            </div>
+                    <div className="max-w-full">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                            Profile Avatar
+                        </label>
+                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+                            {readonly ? (
+                                <div className="text-center">
+                                    {avatar ? (
+                                        <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden border border-gray-200 dark:border-gray-600">
+                                            <Image
+                                                src={avatar}
+                                                alt="Artist avatar"
+                                                width={128}
+                                                height={128}
+                                                className="object-cover"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="w-32 h-32 mx-auto rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center border border-gray-200 dark:border-gray-600">
+                                            <User className="h-12 w-12 text-gray-400" />
+                                        </div>
+                                    )}
+                                    <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                                        {avatar ? 'Profile avatar' : 'No avatar'}
+                                    </p>
+                                </div>
+                            ) : (
+                                <AvatarUploader
+                                    name="avatar"
+                                    folder={BLOB_FOLDERS.artists}
+                                    initialUrl={avatar}
+                                    onUploaded={(res) => setAvatar(res.url)}
+                                    entityId={artistName}
+                                    clearError={clearError}
+                                />
+                            )}
                         </div>
                     </div>
                 </div>

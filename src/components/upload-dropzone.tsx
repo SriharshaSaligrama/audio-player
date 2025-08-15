@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Upload, FileAudio, CheckCircle, AlertCircle } from "lucide-react";
 
 type UploadResult = { url: string; pathname: string };
@@ -16,10 +16,21 @@ type Props = {
 
 export function UploadDropzone({ folder, onUploaded, onFileSelected, accept, className, label = "Drop file or click to upload" }: Props) {
     const inputRef = useRef<HTMLInputElement>(null);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [progress, setProgress] = useState<number>(0);
     const [dragOver, setDragOver] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [uploadComplete, setUploadComplete] = useState(false);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+                timeoutRef.current = null;
+            }
+        };
+    }, []);
 
     const upload = (file: File) => {
         setError(null);
@@ -41,9 +52,14 @@ export function UploadDropzone({ folder, onUploaded, onFileSelected, accept, cla
                 if (xhr.status >= 200 && xhr.status < 300) {
                     setUploadComplete(true);
                     onUploaded(json as UploadResult);
-                    setTimeout(() => {
+                    // Clear any existing timeout
+                    if (timeoutRef.current) {
+                        clearTimeout(timeoutRef.current);
+                    }
+                    timeoutRef.current = setTimeout(() => {
                         setProgress(0);
                         setUploadComplete(false);
+                        timeoutRef.current = null;
                     }, 2000);
                 } else {
                     setError(json?.error?.message || "Upload failed");
@@ -53,7 +69,14 @@ export function UploadDropzone({ folder, onUploaded, onFileSelected, accept, cla
                 setError("Upload failed");
             } finally {
                 if (!uploadComplete) {
-                    setTimeout(() => setProgress(0), 1000);
+                    // Clear any existing timeout
+                    if (timeoutRef.current) {
+                        clearTimeout(timeoutRef.current);
+                    }
+                    timeoutRef.current = setTimeout(() => {
+                        setProgress(0);
+                        timeoutRef.current = null;
+                    }, 1000);
                 }
             }
         };

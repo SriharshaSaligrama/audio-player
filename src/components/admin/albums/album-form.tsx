@@ -67,6 +67,8 @@ export function AlbumForm({ mode, artists, initial, readonly = false }: Props) {
 
     const initialCoverImage = getInitialField(mode, initial, 'coverImage', '') as string;
     const [coverImage, setCoverImage] = useState<string>(initialCoverImage);
+    const [albumTitle, setAlbumTitle] = useState<string>(String(getInitialField(mode, initial, 'title', '') || ''));
+
     const [selectedArtists, setSelectedArtists] = useState<string[]>((getInitialField(mode, initial, 'artists', []) as string[]).map(String));
     const [selectedGenres, setSelectedGenres] = useState<string[]>((getInitialField(mode, initial, 'genres', []) as string[]));
 
@@ -109,8 +111,13 @@ export function AlbumForm({ mode, artists, initial, readonly = false }: Props) {
                                     name="title"
                                     required={!readonly}
                                     readOnly={readonly}
-                                    defaultValue={String(getInitialField(mode, initial, 'title', '') || '')}
-                                    onChange={() => !readonly && clearError('title')}
+                                    value={albumTitle}
+                                    onChange={(e) => {
+                                        if (!readonly) {
+                                            setAlbumTitle(e.target.value);
+                                            clearError('title');
+                                        }
+                                    }}
                                     className={`w-full px-4 py-3 rounded-xl border text-base transition-all duration-200 ${readonly
                                         ? 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 cursor-not-allowed'
                                         : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
@@ -253,13 +260,12 @@ export function AlbumForm({ mode, artists, initial, readonly = false }: Props) {
                         ) : (
                             <>
                                 <CardImageUploader
-                                    key={`album-cover-${coverImage || 'no-cover'}`}
                                     name="coverImage"
                                     folder={BLOB_FOLDERS.albums}
                                     initialUrl={coverImage}
                                     onUploaded={(res) => setCoverImage(res.url)}
-                                    entityId={String(initial?._id || '')}
-                                    oldPathname={String(getInitialField(mode, initial, 'coverImagePath', '') || '')}
+                                    entityId={albumTitle}
+                                    clearError={clearError}
                                 />
                                 <p className="mt-3 text-xs text-gray-500 dark:text-gray-400 text-center">
                                     Upload a high-quality square image (recommended: 1000x1000px or larger)

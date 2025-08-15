@@ -1,8 +1,6 @@
 'use server';
 
 import { ObjectId } from 'mongodb';
-import { put, del } from '@vercel/blob';
-import { BLOB_FOLDERS } from '@/lib/constants/images';
 import { getDb } from '@/lib/mongodb/client';
 import { CustomError, handleActionError, validateRequiredFields } from '@/lib/utils/error-handler';
 import { requireAdmin } from './utils';
@@ -27,7 +25,6 @@ export async function createArtist(_prev: ArtistFormState = initialState, formDa
             name: String(formData.get('name') || ''),
             bio: String(formData.get('bio') || ''),
             avatar: String(formData.get('avatar') || ''),
-            coverImage: String(formData.get('coverImage') || ''),
             genres: (formData.getAll('genres') || []).map(String).filter(Boolean),
             spotify: String(formData.get('spotify') || ''),
             twitter: String(formData.get('twitter') || ''),
@@ -42,7 +39,6 @@ export async function createArtist(_prev: ArtistFormState = initialState, formDa
             name: payload.name,
             bio: payload.bio || '',
             avatar: payload.avatar || '',
-            coverImage: payload.coverImage || '',
             genres: payload.genres,
             socialLinks: { spotify: payload.spotify || '', twitter: payload.twitter || '', instagram: payload.instagram || '' },
             stats: { followers: 0, totalPlays: 0, totalTracks: 0, totalAlbums: 0 },
@@ -51,42 +47,23 @@ export async function createArtist(_prev: ArtistFormState = initialState, formDa
             isDeleted: false,
             deletedAt: null,
         };
-        const result = await db.collection(Collections.ARTISTS).insertOne(doc);
-        const insertedId = String(result.insertedId);
-        const updates: Record<string, unknown> = {};
-
-        async function rekeyIfNeeded(currentUrl: string, folder: string, field: 'avatar' | 'coverImage') {
-            if (!currentUrl) return;
-            let currentPath: string | null = null;
-            try { currentPath = new URL(currentUrl).pathname; } catch { currentPath = null; }
-            const ext = currentPath?.split('.').pop() ? `.${currentPath!.split('.').pop()}` : '.jpg';
-            const desiredKey = `${folder}/${insertedId}${ext}`;
-            if (currentPath && currentPath.endsWith(desiredKey)) return;
-            const resp = await fetch(currentUrl);
-            const array = await resp.arrayBuffer();
-            const blob = new Blob([array]);
-            const putRes = await put(desiredKey, blob, { access: 'public', allowOverwrite: true });
-            updates[field] = putRes.url;
-            if (currentPath) { try { await del(currentPath); } catch { } }
-        }
-
-        await rekeyIfNeeded(doc.avatar as string, BLOB_FOLDERS.artists, 'avatar');
-        await rekeyIfNeeded(doc.coverImage as string, BLOB_FOLDERS.artists, 'coverImage');
-        if (Object.keys(updates).length > 0) {
-            await db.collection(Collections.ARTISTS).updateOne({ _id: result.insertedId }, { $set: updates });
-        }
+        await db.collection(Collections.ARTISTS).insertOne(doc);
     } catch (error) {
         try { handleActionError({ error, source: 'createArtist' }); } catch (e) { const err = e as CustomError; return { success: false, message: err.message, errors: { _form: err.message } }; }
         return { success: false, message: 'Unknown error' };
     }
 
-    (await cookies()).set('admin_success_message', 'artist_created', {
-        httpOnly: false,
-        secure: false,
-        maxAge: 5, // 5 seconds
-        path: '/'
-    });
-    revalidatePath('/admin/artists');
+    try {
+        (await cookies()).set('admin_success_message', 'artist_created', {
+            httpOnly: false,
+            secure: false,
+            maxAge: 5, // 5 seconds
+            path: '/'
+        });
+        revalidatePath('/admin/artists');
+    } catch (error) {
+        console.error('Error setting cookie or revalidating:', error);
+    }
     redirect('/admin/artists');
 }
 
@@ -100,7 +77,6 @@ export async function updateArtist(_prev: ArtistFormState = initialState, formDa
             name: String(formData.get('name') || ''),
             bio: String(formData.get('bio') || ''),
             avatar: String(formData.get('avatar') || ''),
-            coverImage: String(formData.get('coverImage') || ''),
             genres: (formData.getAll('genres') || []).map(String).filter(Boolean),
             spotify: String(formData.get('spotify') || ''),
             twitter: String(formData.get('twitter') || ''),
@@ -117,7 +93,6 @@ export async function updateArtist(_prev: ArtistFormState = initialState, formDa
                     name: payload.name,
                     bio: payload.bio || '',
                     avatar: payload.avatar || '',
-                    coverImage: payload.coverImage || '',
                     genres: payload.genres,
                     socialLinks: { spotify: payload.spotify || '', twitter: payload.twitter || '', instagram: payload.instagram || '' },
                     updatedAt: new Date(),
@@ -129,13 +104,17 @@ export async function updateArtist(_prev: ArtistFormState = initialState, formDa
         return { success: false, message: 'Unknown error' };
     }
 
-    (await cookies()).set('admin_success_message', 'artist_updated', {
-        httpOnly: false,
-        secure: false,
-        maxAge: 5, // 5 seconds
-        path: '/'
-    });
-    revalidatePath('/admin/artists');
+    try {
+        (await cookies()).set('admin_success_message', 'artist_updated', {
+            httpOnly: false,
+            secure: false,
+            maxAge: 5, // 5 seconds
+            path: '/'
+        });
+        revalidatePath('/admin/artists');
+    } catch (error) {
+        console.error('Error setting cookie or revalidating:', error);
+    }
     redirect('/admin/artists');
 }
 

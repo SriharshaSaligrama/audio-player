@@ -81,6 +81,7 @@ export function TrackForm({ mode, artists, albums, initial }: Props) {
         return genreValue ? genreValue.map(g => g.trim()).filter(Boolean) : [];
     });
     const [audioMetadata, setAudioMetadata] = useState<{ duration: number; fileSize: number } | null>(null);
+    const [trackTitle, setTrackTitle] = useState<string>(String(getInitialField(mode, initial, 'title', '') || ''));
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -120,8 +121,11 @@ export function TrackForm({ mode, artists, albums, initial }: Props) {
                                 <input
                                     name="title"
                                     required
-                                    defaultValue={String(getInitialField(mode, initial, 'title', '') || '')}
-                                    onChange={() => clearError('title')}
+                                    value={trackTitle}
+                                    onChange={(e) => {
+                                        setTrackTitle(e.target.value);
+                                        clearError('title');
+                                    }}
                                     className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-base"
                                     placeholder="Enter track title"
                                 />
@@ -321,13 +325,12 @@ export function TrackForm({ mode, artists, albums, initial }: Props) {
 
                     <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-6">
                         <CardImageUploader
-                            key={`track-cover-${coverImage || 'no-cover'}`}
                             name="coverImage"
                             folder={BLOB_FOLDERS.tracks}
                             initialUrl={coverImage}
                             onUploaded={(res) => setCoverImage(res.url)}
-                            entityId={String(initial?._id || '')}
-                            oldPathname={String(getInitialField(mode, initial, 'coverImagePath', '') || '')}
+                            entityId={trackTitle}
+                            clearError={clearError}
                         />
                         <p className="mt-3 text-xs text-gray-500 dark:text-gray-400 text-center">
                             Optional: Upload custom cover art. If not provided, the album&apos;s cover will be used.

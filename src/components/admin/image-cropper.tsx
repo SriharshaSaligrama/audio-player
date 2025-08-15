@@ -10,9 +10,10 @@ type Props = {
     onCancel: () => void;
     onCropped: (file: File) => void;
     title?: string;
+    filename?: string; // optional filename for the cropped file
 };
 
-export function ImageCropper({ open, src, aspect = 1, onCancel, onCropped, title = "Crop image" }: Props) {
+export function ImageCropper({ open, src, aspect = 1, onCancel, onCropped, title = "Crop image", filename = "image.jpg" }: Props) {
     const imgRef = useRef<HTMLImageElement | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
@@ -44,7 +45,14 @@ export function ImageCropper({ open, src, aspect = 1, onCancel, onCropped, title
     };
 
     const onPointerDown: React.PointerEventHandler<HTMLDivElement> = (e) => {
-        (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+        const target = e.target as HTMLElement;
+        if (target && typeof target.setPointerCapture === 'function') {
+            try {
+                target.setPointerCapture(e.pointerId);
+            } catch (error) {
+                console.warn('Failed to set pointer capture:', error);
+            }
+        }
         setIsDragging(true);
         setDragStart({ x: e.clientX, y: e.clientY });
     };
@@ -61,57 +69,83 @@ export function ImageCropper({ open, src, aspect = 1, onCancel, onCropped, title
     };
 
     async function handleConfirm() {
-        const el = imgRef.current;
-        if (!el) return;
-        const naturalWidth = naturalSize.w;
-        const naturalHeight = naturalSize.h;
-        if (!naturalWidth || !naturalHeight) return;
+        try {
+            const el = imgRef.current;
+            if (!el) {
+                console.warn('Image element not found');
+                return;
+            }
 
-        const combinedScale = baseScale * userScale;
-        const displayWidth = naturalWidth * combinedScale;
-        const displayHeight = naturalHeight * combinedScale;
+            const naturalWidth = naturalSize.w;
+            const naturalHeight = naturalSize.h;
+            if (!naturalWidth || !naturalHeight) {
+                console.warn('Invalid image dimensions');
+                return;
+            }
 
-        // The image is centered initially; offset shifts it within frame
-        const centerX = frameWidth / 2;
-        const centerY = frameHeight / 2;
+            const combinedScale = baseScale * userScale;
+            const displayWidth = naturalWidth * combinedScale;
+            const displayHeight = naturalHeight * combinedScale;
 
-        // Top-left of image relative to frame
-        const imageLeft = centerX - displayWidth / 2 + offset.x;
-        const imageTop = centerY - displayHeight / 2 + offset.y;
+            // The image is centered initially; offset shifts it within frame
+            const centerX = frameWidth / 2;
+            const centerY = frameHeight / 2;
 
-        // We will export square/rect at 1024 on the smallest dimension for quality
-        const exportHeight = 1024;
-        const exportWidth = Math.round(exportHeight * aspect);
+            // Top-left of image relative to frame
+            const imageLeft = centerX - displayWidth / 2 + offset.x;
+            const imageTop = centerY - displayHeight / 2 + offset.y;
 
-        const canvas = document.createElement("canvas");
-        canvas.width = exportWidth;
-        canvas.height = exportHeight;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
+            // We will export square/rect at 1024 on the smallest dimension for quality
+            const exportHeight = 1024;
+            const exportWidth = Math.round(exportHeight * aspect);
 
-        // Source rect in image coordinates corresponding to the frame
-        const srcX = (0 - imageLeft) / displayWidth * naturalWidth;
-        const srcY = (0 - imageTop) / displayHeight * naturalHeight;
-        const srcW = frameWidth / displayWidth * naturalWidth;
-        const srcH = frameHeight / displayHeight * naturalHeight;
+            const canvas = document.createElement("canvas");
+            canvas.width = exportWidth;
+            canvas.height = exportHeight;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) {
+                console.warn('Failed to get canvas context');
+                return;
+            }
 
-        ctx.imageSmoothingQuality = "high";
-        ctx.drawImage(
-            el,
-            srcX,
-            srcY,
-            srcW,
-            srcH,
-            0,
-            0,
-            exportWidth,
-            exportHeight
-        );
+            // Source rect in image coordinates corresponding to the frame
+            const srcX = (0 - imageLeft) / displayWidth * naturalWidth;
+            const srcY = (0 - imageTop) / displayHeight * naturalHeight;
+            const srcW = frameWidth / displayWidth * naturalWidth;
+            const srcH = frameHeight / displayHeight * naturalHeight;
 
-        const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.92));
-        if (!blob) return;
-        const file = new File([blob], "cropped.jpg", { type: "image/jpeg" });
-        onCropped(file);
+            ctx.imageSmoothingQuality = "high";
+            ctx.drawImage(
+                el,
+                srcX,
+                srcY,
+                srcW,
+                srcH,
+                0,
+                0,
+                exportWidth,
+                exportHeight
+            );
+
+            const blob: Blob | null = await new Promise((resolve) => {
+                try {
+                    canvas.toBlob(resolve, "image/jpeg", 0.92);
+                } catch (error) {
+                    console.error('Failed to create blob:', error);
+                    resolve(null);
+                }
+            });
+
+            if (!blob) {
+                console.warn('Failed to create image blob');
+                return;
+            }
+
+            const file = new File([blob], filename, { type: "image/jpeg" });
+            onCropped(file);
+        } catch (error) {
+            console.error('Error in handleConfirm:', error);
+        }
     }
 
     if (!open) return null;
@@ -150,12 +184,23 @@ export function ImageCropper({ open, src, aspect = 1, onCancel, onCropped, title
                                 unoptimized
                                 className="pointer-events-none select-none will-change-transform"
                                 onLoad={(e) => {
-                                    const img = e.target as HTMLImageElement;
-                                    setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
-                                    const cover = Math.max(frameWidth / img.naturalWidth, frameHeight / img.naturalHeight);
-                                    setBaseScale(cover);
-                                    setUserScale(1);
-                                    setOffset({ x: 0, y: 0 });
+                                    try {
+                                        const img = e.target as HTMLImageElement;
+                                        if (!img || !img.naturalWidth || !img.naturalHeight) {
+                                            console.warn('Invalid image loaded');
+                                            return;
+                                        }
+                                        setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
+                                        const cover = Math.max(frameWidth / img.naturalWidth, frameHeight / img.naturalHeight);
+                                        setBaseScale(cover);
+                                        setUserScale(1);
+                                        setOffset({ x: 0, y: 0 });
+                                    } catch (error) {
+                                        console.error('Error loading image:', error);
+                                    }
+                                }}
+                                onError={(e) => {
+                                    console.error('Image failed to load:', e);
                                 }}
                                 style={{ objectFit: "contain" }}
                             />

@@ -1,8 +1,6 @@
 'use server';
 
 import { ObjectId } from 'mongodb';
-import { put, del } from '@vercel/blob';
-import { BLOB_FOLDERS } from '@/lib/constants/images';
 import { getDb } from '@/lib/mongodb/client';
 import { CustomError, handleActionError, validateRequiredFields } from '@/lib/utils/error-handler';
 import { requireAdmin, withTransaction } from './utils';
@@ -33,7 +31,7 @@ export async function createTrack(_prev: TrackFormState = initialState, formData
             fileSize: formData.get('fileSize') ? Number(formData.get('fileSize')) : 0,
             fileUrl: String(formData.get('fileUrl') || ''),
             coverImage: String(formData.get('coverImage') || ''),
-            genres: String(formData.get('genres') || []),
+            genres: (formData.getAll('genres') || []).map(String).filter(Boolean),
             tags: (String(formData.get('tags') || '')).split(',').map((t) => t.trim()).filter(Boolean),
         };
 
@@ -74,7 +72,7 @@ export async function createTrack(_prev: TrackFormState = initialState, formData
             deletedAt: null,
         } as const;
 
-        const result = await withTransaction(async ({ session }) => {
+        await withTransaction(async ({ session }) => {
             const insert = await db.collection(Collections.TRACKS).insertOne(trackDoc, { session });
 
             // Update album statistics for all albums this track belongs to
@@ -91,28 +89,24 @@ export async function createTrack(_prev: TrackFormState = initialState, formData
                 );
             }
 
+            // Update artist statistics for all artists this track belongs to
+            if (payload.artistIds.length > 0) {
+                await db.collection(Collections.ARTISTS).updateMany(
+                    { _id: { $in: payload.artistIds.map(id => new ObjectId(id)) } },
+                    {
+                        $inc: {
+                            'stats.totalTracks': 1,
+                            'stats.totalPlays': 0 // Initialize if not exists, but don't increment
+                        }
+                    },
+                    { session }
+                );
+            }
+
             return insert;
         });
 
-        const insertedId = String(result?.insertedId);
-        const updates: Record<string, unknown> = {};
-        if (trackDoc.coverImage) {
-            let currentPath: string | null = null;
-            try { currentPath = new URL(String(trackDoc.coverImage)).pathname; } catch { currentPath = null; }
-            const ext = currentPath?.split('.').pop() ? `.${currentPath!.split('.').pop()}` : '.jpg';
-            const desiredKey = `${BLOB_FOLDERS.tracks}/${insertedId}${ext}`;
-            if (!currentPath || !currentPath.endsWith(desiredKey)) {
-                const resp = await fetch(String(trackDoc.coverImage));
-                const array = await resp.arrayBuffer();
-                const blob = new Blob([array]);
-                const putRes = await put(desiredKey, blob, { access: 'public', allowOverwrite: true });
-                updates.coverImage = putRes.url;
-                if (currentPath) { try { await del(currentPath); } catch { } }
-            }
-        }
-        if (Object.keys(updates).length > 0) {
-            await db.collection(Collections.TRACKS).updateOne({ _id: new ObjectId(insertedId) }, { $set: updates });
-        }
+        // Track creation completed successfully
     } catch (error) {
         try {
             handleActionError({ error, source: 'createTrack' });
@@ -123,13 +117,17 @@ export async function createTrack(_prev: TrackFormState = initialState, formData
         return { success: false, message: 'Unknown error' };
     }
 
-    (await cookies()).set('admin_success_message', 'track_created', {
-        httpOnly: false,
-        secure: false,
-        maxAge: 5,
-        path: '/'
-    });
-    revalidatePath('/admin/tracks');
+    try {
+        (await cookies()).set('admin_success_message', 'track_created', {
+            httpOnly: false,
+            secure: false,
+            maxAge: 5,
+            path: '/'
+        });
+        revalidatePath('/admin/tracks');
+    } catch (error) {
+        console.error('Error setting cookie or revalidating:', error);
+    }
     redirect('/admin/tracks');
 }
 
@@ -174,6 +172,8 @@ export async function updateTrack(_prev: TrackFormState = initialState, formData
 
             const currentAlbumIds = (currentTrack.albums as ObjectId[]).map(id => id.toString());
             const newAlbumIds = payload.albumIds;
+            const currentArtistIds = (currentTrack.artists as ObjectId[]).map(id => id.toString());
+            const newArtistIds = payload.artistIds;
             const currentDuration = currentTrack.duration || 0;
             const newDuration = payload.duration || 0;
 
@@ -245,6 +245,36 @@ export async function updateTrack(_prev: TrackFormState = initialState, formData
                     { session }
                 );
             }
+
+            // Handle artist statistics updates
+            const artistsToRemove = currentArtistIds.filter(id => !newArtistIds.includes(id));
+            const artistsToAdd = newArtistIds.filter(id => !currentArtistIds.includes(id));
+
+            // Remove track from old artists
+            if (artistsToRemove.length > 0) {
+                await db.collection(Collections.ARTISTS).updateMany(
+                    { _id: { $in: artistsToRemove.map(id => new ObjectId(id)) } },
+                    {
+                        $inc: {
+                            'stats.totalTracks': -1
+                        }
+                    },
+                    { session }
+                );
+            }
+
+            // Add track to new artists
+            if (artistsToAdd.length > 0) {
+                await db.collection(Collections.ARTISTS).updateMany(
+                    { _id: { $in: artistsToAdd.map(id => new ObjectId(id)) } },
+                    {
+                        $inc: {
+                            'stats.totalTracks': 1
+                        }
+                    },
+                    { session }
+                );
+            }
         });
     } catch (error) {
         try {
@@ -256,13 +286,17 @@ export async function updateTrack(_prev: TrackFormState = initialState, formData
         return { success: false, message: 'Unknown error' };
     }
 
-    (await cookies()).set('admin_success_message', 'track_updated', {
-        httpOnly: false,
-        secure: false,
-        maxAge: 5,
-        path: '/'
-    });
-    revalidatePath('/admin/tracks');
+    try {
+        (await cookies()).set('admin_success_message', 'track_updated', {
+            httpOnly: false,
+            secure: false,
+            maxAge: 5,
+            path: '/'
+        });
+        revalidatePath('/admin/tracks');
+    } catch (error) {
+        console.error('Error setting cookie or revalidating:', error);
+    }
     redirect('/admin/tracks');
 }
 
@@ -303,19 +337,89 @@ export async function softDeleteTrack(trackId: string, reason: string) {
                     { session }
                 );
             }
+
+            // Update artist statistics
+            if (track.artists && track.artists.length > 0) {
+                await db.collection(Collections.ARTISTS).updateMany(
+                    { _id: { $in: track.artists } },
+                    {
+                        $inc: {
+                            'stats.totalTracks': -1
+                        }
+                    },
+                    { session }
+                );
+            }
         });
     } catch (error) {
         try { handleActionError({ error, source: 'softDeleteTrack', details: { trackId, reason } }); } catch (e) { const err = e as CustomError; return { success: false, message: err.message }; }
     }
 
-    (await cookies()).set('admin_success_message', 'track_deleted', {
-        httpOnly: false,
-        secure: false,
-        maxAge: 5,
-        path: '/'
-    });
-    revalidatePath('/admin/tracks');
+    try {
+        (await cookies()).set('admin_success_message', 'track_deleted', {
+            httpOnly: false,
+            secure: false,
+            maxAge: 5,
+            path: '/'
+        });
+        revalidatePath('/admin/tracks');
+    } catch (error) {
+        console.error('Error setting cookie or revalidating:', error);
+    }
     redirect('/admin/tracks');
+}
+
+/**
+ * Recalculate artist statistics based on current tracks and albums
+ * This can be used to fix any inconsistencies in artist totals
+ */
+export async function recalculateArtistStatistics(artistId?: string) {
+    try {
+        await requireAdmin();
+        const db = await getDb();
+
+        const artistFilter = artistId ? { _id: new ObjectId(artistId) } : {};
+        const artists = await db.collection(Collections.ARTISTS).find(artistFilter).toArray();
+
+        for (const artist of artists) {
+            // Get all non-deleted tracks for this artist
+            const tracks = await db.collection(Collections.TRACKS).find({
+                artists: artist._id,
+                $or: [{ isDeleted: { $exists: false } }, { isDeleted: false }]
+            }).toArray();
+
+            // Get all non-deleted albums for this artist
+            const albums = await db.collection(Collections.ALBUMS).find({
+                artists: artist._id,
+                $or: [{ isDeleted: { $exists: false } }, { isDeleted: false }]
+            }).toArray();
+
+            const totalTracks = tracks.length;
+            const totalAlbums = albums.length;
+
+            // Update the artist with correct statistics
+            await db.collection(Collections.ARTISTS).updateOne(
+                { _id: artist._id },
+                {
+                    $set: {
+                        'stats.totalTracks': totalTracks,
+                        'stats.totalAlbums': totalAlbums,
+                        updatedAt: new Date()
+                    }
+                }
+            );
+        }
+
+        return { success: true, message: `Updated statistics for ${artists.length} artist(s)` };
+    } catch (error) {
+        try {
+            handleActionError({ error, source: 'recalculateArtistStatistics', details: { artistId } });
+        } catch (e) {
+            const err = e as CustomError;
+            return { success: false, message: err.message };
+        }
+        return { success: false, message: 'Unknown error' };
+    }
 }
 
 /**

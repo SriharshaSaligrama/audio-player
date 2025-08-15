@@ -27,8 +27,6 @@ export async function migrateTrackFileSize() {
             ]
         }).toArray();
 
-        console.log(`Found ${tracksWithoutFileSize.length} tracks without fileSize`);
-
         let updated = 0;
         for (const track of tracksWithoutFileSize) {
             try {
@@ -44,14 +42,12 @@ export async function migrateTrackFileSize() {
                         }
                     );
                     updated++;
-                    console.log(`Updated track ${track.title} with fileSize: ${metadata.fileSize}`);
                 }
             } catch (error) {
                 console.error(`Failed to update track ${track.title}:`, error);
             }
         }
 
-        console.log(`Successfully updated ${updated} tracks`);
         return { success: true, updated };
     } catch (error) {
         console.error('Migration failed:', error);

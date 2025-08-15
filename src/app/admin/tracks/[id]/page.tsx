@@ -34,7 +34,7 @@ export default async function EditTrackPage({ params }: { params: Promise<{ id: 
         duration: Number(track.duration ?? 0),
         fileUrl: String(track.fileUrl ?? ''),
         coverImage: String(track.coverImage ?? ''),
-        genre: String(track.genre ?? ''),
+        genres: Array.isArray(track.genres) ? track.genres.map(String) : [],
         tags: Array.isArray(track.tags) ? track.tags.map(String) : [],
     };
 

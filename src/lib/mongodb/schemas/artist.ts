@@ -20,7 +20,6 @@ export const artistSchemaValidator: JsonSchemaValidator = {
             name: stringField('Artist name is required'),
             bio: stringField('Artist biography'),
             avatar: stringField('Artist profile picture URL'),
-            coverImage: stringField('Artist cover image URL'),
             genres: arrayField(stringField(), 'List of music genres'),
             socialLinks: objectField({
                 spotify: stringField(),
@@ -48,7 +47,6 @@ export type Artist = {
     name: string;
     bio?: string;
     avatar?: string;
-    coverImage?: string;
     genres: string[];
     socialLinks?: {
         spotify?: string;

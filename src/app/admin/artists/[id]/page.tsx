@@ -26,7 +26,6 @@ export default async function EditArtistPage({ params }: { params: Promise<{ id:
         _id: String(artist._id),
         name: String(artist.name ?? ''),
         avatar: String(artist.avatar ?? ''),
-        coverImage: String(artist.coverImage ?? ''),
         bio: String(artist.bio ?? ''),
         genres: Array.isArray(artist.genres) ? artist.genres.map(String) : [],
         socialLinks: {

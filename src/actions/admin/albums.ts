@@ -1,8 +1,6 @@
 'use server';
 
 import { ObjectId } from 'mongodb';
-import { put, del } from '@vercel/blob';
-import { BLOB_FOLDERS } from '@/lib/constants/images';
 import { getDb } from '@/lib/mongodb/client';
 import { CustomError, handleActionError, validateRequiredFields } from '@/lib/utils/error-handler';
 import { requireAdmin } from './utils';
@@ -52,34 +50,35 @@ export async function createAlbum(_prev: AlbumFormState = initialState, formData
             isDeleted: false,
             deletedAt: null,
         };
-        const result = await db.collection(Collections.ALBUMS).insertOne(doc);
-        const insertedId = String(result.insertedId);
-        if (doc.coverImage) {
-            let currentPath: string | null = null;
-            try { currentPath = new URL(String(doc.coverImage)).pathname; } catch { currentPath = null; }
-            const ext = currentPath?.split('.').pop() ? `.${currentPath!.split('.').pop()}` : '.jpg';
-            const desiredKey = `${BLOB_FOLDERS.albums}/${insertedId}${ext}`;
-            if (!currentPath || !currentPath.endsWith(desiredKey)) {
-                const resp = await fetch(String(doc.coverImage));
-                const array = await resp.arrayBuffer();
-                const blob = new Blob([array]);
-                const putRes = await put(desiredKey, blob, { access: 'public', allowOverwrite: true });
-                await db.collection(Collections.ALBUMS).updateOne({ _id: result.insertedId }, { $set: { coverImage: putRes.url } });
-                if (currentPath) { try { await del(currentPath); } catch { } }
-            }
+        await db.collection(Collections.ALBUMS).insertOne(doc);
+
+        // Update artist statistics - increment totalAlbums for all artists in this album
+        if (payload.artistIds.length > 0) {
+            await db.collection(Collections.ARTISTS).updateMany(
+                { _id: { $in: payload.artistIds.map(id => new ObjectId(id)) } },
+                {
+                    $inc: {
+                        'stats.totalAlbums': 1
+                    }
+                }
+            );
         }
     } catch (error) {
         try { handleActionError({ error, source: 'createAlbum' }); } catch (e) { const err = e as CustomError; return { success: false, message: err.message, errors: { _form: err.message } }; }
         return { success: false, message: 'Unknown error' };
     }
 
-    (await cookies()).set('admin_success_message', 'album_created', {
-        httpOnly: false,
-        secure: false,
-        maxAge: 5,
-        path: '/'
-    });
-    revalidatePath('/admin/albums');
+    try {
+        (await cookies()).set('admin_success_message', 'album_created', {
+            httpOnly: false,
+            secure: false,
+            maxAge: 5,
+            path: '/'
+        });
+        revalidatePath('/admin/albums');
+    } catch (error) {
+        console.error('Error setting cookie or revalidating:', error);
+    }
     redirect('/admin/albums');
 }
 
@@ -99,9 +98,21 @@ export async function updateAlbum(_prev: AlbumFormState = initialState, formData
             label: String(formData.get('label') || ''),
         };
 
+
+
         validateRequiredFields({ obj: payload, fields: ['title', 'artistIds', 'releaseDate'] });
 
         const db = await getDb();
+
+        // Get the current album to compare artist changes
+        const currentAlbum = await db.collection(Collections.ALBUMS).findOne({ _id: new ObjectId(id) });
+        if (!currentAlbum) {
+            throw new CustomError({ message: 'Album not found', statusCode: 404, type: 'NotFoundError' });
+        }
+
+        const currentArtistIds = (currentAlbum.artists as ObjectId[]).map(id => id.toString());
+        const newArtistIds = payload.artistIds;
+
         await db.collection(Collections.ALBUMS).updateOne(
             { _id: new ObjectId(id) },
             {
@@ -117,18 +128,50 @@ export async function updateAlbum(_prev: AlbumFormState = initialState, formData
                 },
             }
         );
+
+        // Handle artist statistics updates
+        const artistsToRemove = currentArtistIds.filter(id => !newArtistIds.includes(id));
+        const artistsToAdd = newArtistIds.filter(id => !currentArtistIds.includes(id));
+
+        // Remove album from old artists
+        if (artistsToRemove.length > 0) {
+            await db.collection(Collections.ARTISTS).updateMany(
+                { _id: { $in: artistsToRemove.map(id => new ObjectId(id)) } },
+                {
+                    $inc: {
+                        'stats.totalAlbums': -1
+                    }
+                }
+            );
+        }
+
+        // Add album to new artists
+        if (artistsToAdd.length > 0) {
+            await db.collection(Collections.ARTISTS).updateMany(
+                { _id: { $in: artistsToAdd.map(id => new ObjectId(id)) } },
+                {
+                    $inc: {
+                        'stats.totalAlbums': 1
+                    }
+                }
+            );
+        }
     } catch (error) {
         try { handleActionError({ error, source: 'updateAlbum' }); } catch (e) { const err = e as CustomError; return { success: false, message: err.message, errors: { _form: err.message } }; }
         return { success: false, message: 'Unknown error' };
     }
 
-    (await cookies()).set('admin_success_message', 'album_updated', {
-        httpOnly: false,
-        secure: false,
-        maxAge: 5,
-        path: '/'
-    });
-    revalidatePath('/admin/albums');
+    try {
+        (await cookies()).set('admin_success_message', 'album_updated', {
+            httpOnly: false,
+            secure: false,
+            maxAge: 5,
+            path: '/'
+        });
+        revalidatePath('/admin/albums');
+    } catch (error) {
+        console.error('Error setting cookie or revalidating:', error);
+    }
     redirect('/admin/albums');
 }
 
@@ -137,10 +180,29 @@ export async function softDeleteAlbum(albumId: string, reason: string) {
         await requireAdmin();
         if (!albumId) throw new CustomError({ message: 'Missing album id', statusCode: 400, type: 'ValidationError' });
         const db = await getDb();
+
+        // Get the album to update artist statistics
+        const album = await db.collection(Collections.ALBUMS).findOne({ _id: new ObjectId(albumId) });
+        if (!album) {
+            throw new CustomError({ message: 'Album not found', statusCode: 404, type: 'NotFoundError' });
+        }
+
         await db.collection(Collections.ALBUMS).updateOne(
             { _id: new ObjectId(albumId) },
             { $set: { isDeleted: true, deletedAt: new Date(), takedownReason: reason } }
         );
+
+        // Update artist statistics - decrement totalAlbums for all artists in this album
+        if (album.artists && album.artists.length > 0) {
+            await db.collection(Collections.ARTISTS).updateMany(
+                { _id: { $in: album.artists } },
+                {
+                    $inc: {
+                        'stats.totalAlbums': -1
+                    }
+                }
+            );
+        }
     } catch (error) {
         try {
             handleActionError({ error, source: 'softDeleteAlbum', details: { albumId, reason } });
@@ -149,12 +211,16 @@ export async function softDeleteAlbum(albumId: string, reason: string) {
         }
     }
 
-    (await cookies()).set('admin_success_message', 'album_deleted', {
-        httpOnly: false,
-        secure: false,
-        maxAge: 5,
-        path: '/'
-    });
-    revalidatePath('/admin/albums');
+    try {
+        (await cookies()).set('admin_success_message', 'album_deleted', {
+            httpOnly: false,
+            secure: false,
+            maxAge: 5,
+            path: '/'
+        });
+        revalidatePath('/admin/albums');
+    } catch (error) {
+        console.error('Error setting cookie or revalidating:', error);
+    }
     redirect('/admin/albums');
 }

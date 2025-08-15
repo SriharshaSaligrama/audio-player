@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import { ImageCropper } from "@/components/admin/image-cropper";
 import Image from "next/image";
 import { Trash2 } from "lucide-react";
+import { deleteBlobForEntity, isVercelBlobUrl } from "@/lib/utils/blob-cleanup";
 
 export type UploadResult = { url: string; pathname: string };
 
@@ -17,11 +18,15 @@ type Props = {
     label?: string;
     size?: number;
     entityId?: string;
-    oldPathname?: string;
+
+    clearError?: (name: string) => void; // to clear form errors
 };
 
-export function CardImageUploader({ name, folder, ratio = 1, initialUrl, onUploaded, className, label = "Upload image", entityId, oldPathname }: Props) {
+export function CardImageUploader({ name, folder, ratio = 1, initialUrl, onUploaded, className, label = "Upload image", entityId, clearError }: Props) {
     const inputRef = useRef<HTMLInputElement>(null);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const progressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const mountedRef = useRef(true);
     const [imageUrl, setImageUrl] = useState<string | undefined>(initialUrl);
     const [progress, setProgress] = useState<number>(0);
     const [showCropper, setShowCropper] = useState(false);
@@ -33,46 +38,102 @@ export function CardImageUploader({ name, folder, ratio = 1, initialUrl, onUploa
         setImageUrl(initialUrl);
     }, [initialUrl]);
 
+
+
+    // Cleanup timers on unmount
+    useEffect(() => {
+        mountedRef.current = true;
+        return () => {
+            mountedRef.current = false;
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+            if (progressTimeoutRef.current) {
+                clearTimeout(progressTimeoutRef.current);
+                progressTimeoutRef.current = null;
+            }
+        };
+    }, []);
+
     const openFile = () => inputRef.current?.click();
 
     const upload = async (file: File) => {
+        if (!mountedRef.current) return;
+
+        // Delete old image if it belongs to this entity (non-blocking)
+        if (imageUrl && isVercelBlobUrl(imageUrl) && entityId) {
+            deleteBlobForEntity(imageUrl, entityId).catch(error => {
+                console.warn('Failed to delete old image:', error);
+            });
+        }
+
+        if (!mountedRef.current) return;
+
         const form = new FormData();
         form.append("file", file);
         form.append("folder", folder);
         if (entityId) form.append("entityId", entityId);
-        const derivedOld = (() => {
-            try {
-                return imageUrl ? new URL(imageUrl).pathname : (oldPathname || "");
-            } catch {
-                return oldPathname || "";
-            }
-        })();
-        if (derivedOld) form.append("oldPathname", derivedOld);
+
         setProgress(1);
         let current = 1;
-        const timer = setInterval(() => {
-            current = Math.min(90, current + 2);
-            setProgress(current);
+
+        // Clear any existing timer
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+        }
+
+        timerRef.current = setInterval(() => {
+            if (mountedRef.current) {
+                current = Math.min(90, current + 2);
+                setProgress(current);
+            }
         }, 120);
+
         try {
             const response = await fetch("/api/blob", { method: "POST", body: form });
-            clearInterval(timer);
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
             if (!response.ok) {
-                setProgress(0);
+                if (mountedRef.current) {
+                    setProgress(0);
+                }
                 return;
             }
             const json = (await response.json()) as UploadResult;
-            setProgress(100);
-            // Add cache-busting timestamp to force refresh
-            const newUrl = `${json.url}?t=${Date.now()}`;
-            setImageUrl(newUrl);
-            onUploaded?.({ ...json, url: newUrl });
+
+            if (mountedRef.current) {
+                setProgress(100);
+            }
+            if (mountedRef.current) {
+                // Add cache-busting timestamp to force refresh
+                const cacheBustedUrl = `${json.url}?t=${Date.now()}`;
+                setImageUrl(cacheBustedUrl);
+                onUploaded?.({ ...json, url: json.url }); // Send original URL to backend
+                clearError?.(name); // Clear any previous errors
+            }
         } catch (e) {
             console.error(e);
-            clearInterval(timer);
-            setProgress(0);
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+            if (mountedRef.current) {
+                setProgress(0);
+            }
         } finally {
-            setTimeout(() => setProgress(0), 500);
+            // Clear any existing progress timeout
+            if (progressTimeoutRef.current) {
+                clearTimeout(progressTimeoutRef.current);
+            }
+            progressTimeoutRef.current = setTimeout(() => {
+                if (mountedRef.current) {
+                    setProgress(0);
+                    progressTimeoutRef.current = null;
+                }
+            }, 500);
         }
     };
 
@@ -88,11 +149,23 @@ export function CardImageUploader({ name, folder, ratio = 1, initialUrl, onUploa
         reader.readAsDataURL(file);
     };
 
-    const remove = () => setImageUrl(undefined);
+    const remove = async () => {
+        if (!mountedRef.current) return;
+
+        // Immediately update UI
+        setImageUrl(undefined);
+
+        // Delete from blob storage in background (non-blocking)
+        if (imageUrl && isVercelBlobUrl(imageUrl) && entityId) {
+            deleteBlobForEntity(imageUrl, entityId).catch(error => {
+                console.warn('Failed to delete image:', error);
+            });
+        }
+    };
 
     return (
         <div className={className}>
-            <input type="hidden" name={name} value={imageUrl ?? ""} />
+            <input type="hidden" name={name} value={imageUrl || ""} />
             <input ref={inputRef} type="file" accept="image/*" hidden onChange={(e) => onFiles(e.target.files)} />
 
             {/* Full width container that maintains aspect ratio */}
@@ -141,8 +214,9 @@ export function CardImageUploader({ name, folder, ratio = 1, initialUrl, onUploa
                                     fill
                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                     className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                    unoptimized={imageUrl?.includes('blob.vercel-storage.com')}
+                                    unoptimized={true}
                                     key={imageUrl}
+                                    priority={true}
                                 />
                                 {/* Gradient overlay */}
                                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -294,6 +368,7 @@ export function CardImageUploader({ name, folder, ratio = 1, initialUrl, onUploa
                     src={pendingSrc}
                     aspect={ratio}
                     title="Crop image"
+                    filename={entityId ? `${entityId.toLowerCase().replace(/[^a-z0-9]/g, '-')}.jpg` : "image.jpg"}
                     onCancel={() => setShowCropper(false)}
                     onCropped={(file) => {
                         setShowCropper(false);

@@ -256,7 +256,7 @@ export function CalendarInput({
                                         <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Year</label>
                                         <div className="grid grid-cols-2 gap-1 max-h-32 overflow-y-auto">
                                             {Array.from({ length: 21 }, (_, i) => {
-                                                const year = new Date().getFullYear() - 10 + i;
+                                                const year = new Date().getFullYear() - 20 + i;
                                                 return (
                                                     <button
                                                         key={year}
