@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
 import { UniversalLayout } from './universal-layout';
 
-interface ConditionalLayoutProps {
+type ConditionalLayoutProps = {
     children: ReactNode;
 }
 

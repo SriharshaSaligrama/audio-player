@@ -5,7 +5,7 @@ This directory contains all components related to user profile management.
 ## Components
 
 ### Core Components
-- **ProfileTabs**: Main tabbed interface for organizing profile sections
+- **ProfileTabs**: Main tabbed type for organizing profile sections
 - **ProfileForm**: Editable form for personal information
 - **ProfileImageUpload**: Profile picture upload functionality
 - **ProfileSettings**: Security and account settings management
@@ -14,7 +14,6 @@ This directory contains all components related to user profile management.
 - **ProfileToast**: Success/error notifications
 - **ProfileLoading**: Loading skeleton states
 - **ProfileError**: Error handling with retry functionality
-- **ProfileTest**: Test component for development
 
 ## Usage
 

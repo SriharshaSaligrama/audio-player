@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, ReactNode } from 'react';
 
-interface SidebarContextType {
+type SidebarContextType = {
     isCollapsed: boolean;
     setIsCollapsed: (collapsed: boolean) => void;
     isMobileMenuOpen: boolean;

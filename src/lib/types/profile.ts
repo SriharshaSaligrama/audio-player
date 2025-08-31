@@ -1,7 +1,7 @@
 import { User } from "@clerk/nextjs/server";
 
 // Serialized user data that can be safely passed to client components
-export interface SerializedUser {
+export type SerializedUser = {
     id: string;
     firstName: string | null;
     lastName: string | null;

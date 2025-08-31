@@ -13,7 +13,7 @@ import { SerializedUser } from '@/lib/types/profile';
 import { ProfileImageUpload } from './profile-image-upload';
 import { ProfileToast } from './profile-toast';
 
-interface ProfileFormProps {
+type ProfileFormProps = {
     user: SerializedUser;
 }
 

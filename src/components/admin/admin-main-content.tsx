@@ -3,7 +3,7 @@
 import { ReactNode } from 'react';
 import { useSidebar } from './sidebar-context';
 
-interface AdminMainContentProps {
+type AdminMainContentProps = {
     children: ReactNode;
 }
 

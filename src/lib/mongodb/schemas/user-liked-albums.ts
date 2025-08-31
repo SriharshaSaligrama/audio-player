@@ -10,7 +10,7 @@ export const userLikedAlbumsSchemaValidator: JsonSchemaValidator = {
         required: ['userId', 'albumId', 'likedAt'],
         properties: {
             _id: objectIdField(),
-            userId: objectIdField('Reference to User document'),
+            userId: { bsonType: 'string', description: 'Clerk User ID' },
             albumId: objectIdField('Reference to Album document'),
             likedAt: dateField('Timestamp when the user liked the album'),
         },

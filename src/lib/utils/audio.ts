@@ -2,7 +2,7 @@
  * Audio metadata extraction utilities
  */
 
-export interface AudioMetadata {
+export type AudioMetadata = {
     duration: number; // in seconds
     fileSize: number; // in bytes
     title?: string;

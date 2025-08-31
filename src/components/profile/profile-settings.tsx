@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { SerializedUser } from '@/lib/types/profile';
 
-interface ProfileSettingsProps {
+type ProfileSettingsProps = {
     user: SerializedUser;
 }
 

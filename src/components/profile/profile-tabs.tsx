@@ -6,7 +6,7 @@ import { SerializedUser } from '@/lib/types/profile';
 import { ProfileForm } from './profile-form';
 import { ProfileSettings } from './profile-settings';
 
-interface ProfileTabsProps {
+type ProfileTabsProps = {
     user: SerializedUser;
 }
 

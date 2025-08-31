@@ -2,7 +2,7 @@
 
 import { MouseEvent } from 'react';
 
-interface SocialLinksProps {
+type SocialLinksProps = {
     socialLinks: {
         spotify?: string;
         twitter?: string;

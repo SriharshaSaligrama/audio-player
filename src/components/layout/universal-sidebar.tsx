@@ -52,7 +52,7 @@ const getNavigationItems = (isAdmin: boolean, isSignedIn: boolean) => {
     ];
 };
 
-interface UniversalSidebarProps {
+type UniversalSidebarProps = {
     isAdmin?: boolean;
 }
 

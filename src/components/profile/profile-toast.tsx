@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { CheckCircle, XCircle, X } from 'lucide-react';
 
-interface ToastProps {
+type ToastProps = {
     message: string;
     type: 'success' | 'error';
     isVisible: boolean;

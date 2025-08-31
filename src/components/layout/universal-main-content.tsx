@@ -3,7 +3,7 @@
 import { ReactNode } from 'react';
 import { useSidebar } from './sidebar-context';
 
-interface UniversalMainContentProps {
+type UniversalMainContentProps = {
     children: ReactNode;
 }
 

@@ -6,7 +6,7 @@ import { Camera, Loader2, User } from 'lucide-react';
 import Image from 'next/image';
 import { validateImageFile, getImageProps, isValidImageUrl } from '@/lib/utils/image';
 
-interface ProfileImageUploadProps {
+type ProfileImageUploadProps = {
     currentImageUrl?: string;
     size?: number;
 }

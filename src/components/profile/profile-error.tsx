@@ -1,6 +1,6 @@
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
-interface ProfileErrorProps {
+type ProfileErrorProps = {
     error?: string;
     onRetry?: () => void;
 }

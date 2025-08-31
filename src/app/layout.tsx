@@ -4,6 +4,11 @@ import {
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ConditionalLayout } from "@/components/layout/conditional-layout";
+import { ToastProvider } from "@/components/providers/toast-provider";
+import { AudioProvider } from "@/components/audio-player/audio-context";
+import { AudioPlayer } from "@/components/audio-player/audio-player";
+import { KeyboardShortcuts } from "@/components/audio-player/keyboard-shortcuts";
+import { LikeSyncProvider } from "@/contexts/like-sync-context";
 
 import "./globals.css";
 import { ensureDbInitialized } from "@/lib/mongodb/init";
@@ -48,9 +53,17 @@ export default function RootLayout({
                         disableTransitionOnChange={false}
                         forcedTheme={undefined}
                     >
-                        <ConditionalLayout>
-                            {children}
-                        </ConditionalLayout>
+                        <ToastProvider>
+                            <AudioProvider>
+                                <LikeSyncProvider>
+                                    <ConditionalLayout>
+                                        {children}
+                                    </ConditionalLayout>
+                                    <AudioPlayer />
+                                    <KeyboardShortcuts />
+                                </LikeSyncProvider>
+                            </AudioProvider>
+                        </ToastProvider>
                     </ThemeProvider>
                 </body>
             </html>

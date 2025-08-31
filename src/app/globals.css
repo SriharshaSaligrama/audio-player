@@ -474,3 +474,198 @@ ced upload component animations */
 .animated-border {
     animation: border-dance 4s ease-in-out infinite;
 }
+
+/* Audi
+o Player Slider Styles */
+.slider {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.slider::-webkit-slider-track {
+    background: #e5e7eb;
+    height: 8px;
+    border-radius: 4px;
+}
+
+.dark .slider::-webkit-slider-track {
+    background: #374151;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #16a34a;
+    cursor: pointer;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+    background: #15803d;
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.slider::-moz-range-track {
+    background: #e5e7eb;
+    height: 8px;
+    border-radius: 4px;
+    border: none;
+}
+
+.dark .slider::-moz-range-track {
+    background: #374151;
+}
+
+.slider::-moz-range-thumb {
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #16a34a;
+    cursor: pointer;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+    background: #15803d;
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Audio Player Animations */
+@keyframes audio-wave {
+
+    0%,
+    100% {
+        height: 8px;
+    }
+
+    50% {
+        height: 16px;
+    }
+}
+
+@keyframes audio-pulse {
+
+    0%,
+    100% {
+        opacity: 0.6;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+}
+
+.audio-wave {
+    animation: audio-wave 1s ease-in-out infinite;
+}
+
+.audio-pulse {
+    animation: audio-pulse 2s ease-in-out infinite;
+}
+
+/* Audio Player Bottom Padding */
+.audio-player-padding {
+    padding-bottom: 80px;
+    /* Space for mini player */
+}
+
+.audio-player-padding.expanded {
+    padding-bottom: 200px;
+    /* Space for expanded player */
+}
+
+/* Queue Scrollbar */
+.queue-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.queue-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.queue-scroll::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+}
+
+.dark .queue-scroll::-webkit-scrollbar-thumb {
+    background: #4b5563;
+}
+
+.queue-scroll::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+.dark .queue-scroll::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
+
+/* Drag and Drop Styles */
+.drag-over {
+    background-color: rgba(34, 197, 94, 0.1);
+    border-color: #22c55e;
+}
+
+.drag-preview {
+    opacity: 0.5;
+    transform: rotate(5deg);
+}
+
+/* Loading States */
+.loading-shimmer {
+    background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+.dark .loading-shimmer {
+    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+    background-size: 200% 100%;
+}
+
+/* Enhanced Focus States */
+.focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800;
+}
+
+/* Audio Visualizer */
+@keyframes visualizer-bar {
+
+    0%,
+    100% {
+        transform: scaleY(0.3);
+    }
+
+    50% {
+        transform: scaleY(1);
+    }
+}
+
+.visualizer-bar {
+    animation: visualizer-bar 0.8s ease-in-out infinite;
+}
+
+.visualizer-bar:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.visualizer-bar:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.visualizer-bar:nth-child(4) {
+    animation-delay: 0.3s;
+}

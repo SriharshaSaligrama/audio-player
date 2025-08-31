@@ -16,9 +16,10 @@ export async function requireAdmin() {
 }
 
 export async function withTransaction<T>(fn: (args: { client: MongoClient; session: import('mongodb').ClientSession }) => Promise<T>) {
+    const client: MongoClient = await clientPromise;
+    const session = client.startSession();
+
     try {
-        const client: MongoClient = await clientPromise;
-        const session = client.startSession();
         let result = null as unknown as T;
         await session.withTransaction(async () => {
             result = await fn({ client, session });
@@ -26,6 +27,8 @@ export async function withTransaction<T>(fn: (args: { client: MongoClient; sessi
         return result;
     } catch (error) {
         handleActionError({ error, source: 'withTransaction' });
+    } finally {
+        await session.endSession();
     }
 }
 

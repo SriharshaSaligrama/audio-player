@@ -5,7 +5,7 @@ import { SidebarProvider } from './sidebar-context';
 import { UniversalSidebar } from './universal-sidebar';
 import { UniversalMainContent } from './universal-main-content';
 
-interface UniversalLayoutProps {
+type UniversalLayoutProps = {
     children: ReactNode;
     isAdmin?: boolean;
     showToasts?: boolean;
