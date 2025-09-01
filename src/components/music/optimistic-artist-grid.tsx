@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Users, Play } from 'lucide-react';
+import { Users, Play, Loader2 } from 'lucide-react';
 import { Artist } from '@/lib/mongodb/schemas';
 import { ArtistWithFollowStatus } from '@/actions/artists';
 import { OptimisticFollowButtonWithCount } from '@/components/ui/optimistic-interactive-buttons';
+import { usePlayCollection } from '@/hooks/use-play-collection';
 
 type OptimisticArtistGridProps = {
     artists: (Artist | ArtistWithFollowStatus)[];
@@ -14,6 +15,8 @@ type OptimisticArtistGridProps = {
 }
 
 export function OptimisticArtistGrid({ artists, columns = 4 }: OptimisticArtistGridProps) {
+    const { playCollection, isLoading } = usePlayCollection();
+
     // Track follower counts for each artist
     const [followerCounts, setFollowerCounts] = useState<Record<string, number>>(() => {
         const counts: Record<string, number> = {};
@@ -92,17 +95,22 @@ export function OptimisticArtistGrid({ artists, columns = 4 }: OptimisticArtistG
                                     )}
 
                                     {/* Play Button Overlay */}
-                                    <div className="absolute inset-0 rounded-full  transition-all duration-300 flex items-center justify-center">
+                                    <div className="absolute inset-0 rounded-full transition-all duration-300 flex items-center justify-center">
                                         <button
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
-                                                // TODO: Implement artist play functionality
-                                                console.log('Play artist:', artist.name);
+                                                playCollection(artistId, 'artist', artist.name);
                                             }}
-                                            className="w-16 h-16 bg-white hover:bg-gray-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transform scale-50 group-hover:scale-100 transition-all duration-300 shadow-2xl border-2 border-gray-200 hover:border-blue-500"
+                                            disabled={isLoading(artistId, 'artist')}
+                                            className="w-16 h-16 bg-white hover:bg-gray-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transform scale-50 group-hover:scale-100 transition-all duration-300 shadow-2xl border-2 border-gray-200 hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            title={`Play all tracks by ${artist.name}`}
                                         >
-                                            <Play className="h-6 w-6 text-gray-800 hover:text-blue-600 ml-1" fill="currentColor" />
+                                            {isLoading(artistId, 'artist') ? (
+                                                <Loader2 className="h-6 w-6 text-gray-800 animate-spin" />
+                                            ) : (
+                                                <Play className="h-6 w-6 text-gray-800 hover:text-blue-600 ml-1" fill="currentColor" />
+                                            )}
                                         </button>
                                     </div>
 

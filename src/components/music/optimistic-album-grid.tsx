@@ -2,10 +2,11 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Play, Calendar, Clock, Music } from 'lucide-react';
+import { Play, Calendar, Clock, Music, Loader2 } from 'lucide-react';
 import { AlbumWithDetails, AlbumWithLikeStatus } from '@/actions/albums';
 import { formatDate } from '@/lib/utils/date';
 import { OptimisticLikeButton } from '@/components/ui/optimistic-interactive-buttons';
+import { usePlayCollection } from '@/hooks/use-play-collection';
 
 type OptimisticAlbumGridProps = {
     albums: (AlbumWithDetails | AlbumWithLikeStatus)[];
@@ -13,6 +14,8 @@ type OptimisticAlbumGridProps = {
 }
 
 export function OptimisticAlbumGrid({ albums, columns = 4 }: OptimisticAlbumGridProps) {
+    const { playCollection, isLoading } = usePlayCollection();
+
     const formatDuration = (seconds?: number) => {
         if (!seconds) return '0:00';
         const hours = Math.floor(seconds / 3600);
@@ -82,12 +85,17 @@ export function OptimisticAlbumGrid({ albums, columns = 4 }: OptimisticAlbumGrid
                                         onClick={(e) => {
                                             e.preventDefault();
                                             e.stopPropagation();
-                                            // TODO: Implement album play functionality
-                                            console.log('Play album:', album.title);
+                                            playCollection(albumId, 'album', album.title);
                                         }}
-                                        className="w-16 h-16 bg-white hover:bg-gray-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transform scale-50 group-hover:scale-100 transition-all duration-300 shadow-2xl border-2 border-gray-200 hover:border-green-500"
+                                        disabled={isLoading(albumId, 'album')}
+                                        className="w-16 h-16 bg-white hover:bg-gray-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transform scale-50 group-hover:scale-100 transition-all duration-300 shadow-2xl border-2 border-gray-200 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title={`Play all tracks from ${album.title}`}
                                     >
-                                        <Play className="h-6 w-6 text-gray-800 hover:text-green-600 ml-1" fill="currentColor" />
+                                        {isLoading(albumId, 'album') ? (
+                                            <Loader2 className="h-6 w-6 text-gray-800 animate-spin" />
+                                        ) : (
+                                            <Play className="h-6 w-6 text-gray-800 hover:text-green-600 ml-1" fill="currentColor" />
+                                        )}
                                     </button>
                                 </div>
 

@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Play, Users, Music, ExternalLink } from 'lucide-react';
+import { Users, Music, ExternalLink } from 'lucide-react';
 import { getArtistById } from '@/actions/artists';
 import { getTracksByArtistWithLikeStatus } from '@/actions/tracks';
 import { getAlbumsByArtistWithLikeStatus } from '@/actions/albums';
@@ -11,6 +11,7 @@ import { OptimisticAlbumGrid } from '@/components/music/optimistic-album-grid';
 import { formatDate } from '@/lib/utils/date';
 import { OptimisticFollowButton } from '@/components/ui/optimistic-interactive-buttons';
 import { ShareButton } from '@/components/ui/interactive-buttons';
+import { PlayArtistButton } from '@/components/audio-player/play-artist-button';
 import { serializeTracks, serializeAlbums } from '@/lib/utils/serialization';
 
 type ArtistDetailPageProps = {
@@ -127,10 +128,7 @@ export default async function ArtistDetailPage({ params }: ArtistDetailPageProps
 
                         {/* Action Buttons */}
                         <div className="flex items-center gap-4 flex-wrap">
-                            <button className="flex items-center gap-3 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold transition-colors shadow-lg hover:shadow-xl">
-                                <Play className="h-5 w-5" fill="currentColor" />
-                                Play
-                            </button>
+                            <PlayArtistButton artistId={artistId} artistName={artist.name} />
                             <OptimisticFollowButton
                                 artistId={artistId}
                                 initialFollowing={initialFollowing}

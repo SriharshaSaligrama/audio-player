@@ -2,11 +2,12 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Play, Calendar, Clock, Music } from 'lucide-react';
+import { Play, Calendar, Clock, Music, Loader2 } from 'lucide-react';
 import { AlbumWithDetails, AlbumWithLikeStatus } from '@/actions/albums';
 import { formatDate } from '@/lib/utils/date';
 import { OptimisticLikeButton } from '@/components/ui/optimistic-interactive-buttons';
 import { Carousel } from '@/components/ui/carousel';
+import { usePlayCollection } from '@/hooks/use-play-collection';
 
 type AlbumCarouselProps = {
     albums: (AlbumWithDetails | AlbumWithLikeStatus)[];
@@ -31,6 +32,8 @@ export function AlbumCarousel({
         }
         return `${mins}m`;
     };
+
+    const { playCollection, isLoading } = usePlayCollection();
 
     if (albums.length === 0) {
         return (
@@ -63,6 +66,7 @@ export function AlbumCarousel({
             <Carousel itemWidth={280} gap={24} className="px-1">
                 {albums.map((album) => {
                     const albumId = String(album._id);
+                    const loading = isLoading(albumId, 'album');
 
                     return (
                         <Link
@@ -95,11 +99,17 @@ export function AlbumCarousel({
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
-                                                console.log('Play album:', album.title);
+                                                playCollection(albumId, 'album', album.title);
                                             }}
-                                            className="w-16 h-16 bg-white hover:bg-gray-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transform scale-50 group-hover:scale-100 transition-all duration-300 shadow-2xl border-2 border-gray-200 hover:border-green-500 pointer-events-auto"
+                                            disabled={loading}
+                                            className="w-16 h-16 bg-white hover:bg-gray-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transform scale-50 group-hover:scale-100 transition-all duration-300 shadow-2xl border-2 border-gray-200 hover:border-green-500 pointer-events-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                                            title={`Play all tracks from ${album.title}`}
                                         >
-                                            <Play className="h-6 w-6 text-gray-800 hover:text-green-600 ml-1" fill="currentColor" />
+                                            {loading ? (
+                                                <Loader2 className="h-6 w-6 text-gray-800 animate-spin" />
+                                            ) : (
+                                                <Play className="h-6 w-6 text-gray-800 hover:text-green-600 ml-1" fill="currentColor" />
+                                            )}
                                         </button>
                                     </div>
 
@@ -180,9 +190,7 @@ export function AlbumCarousel({
                                                 </span>
                                             ))}
                                             {album.genres.length > 2 && (
-                                                <span className="px-2.5 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full font-medium border border-gray-200 dark:border-gray-600">
-                                                    +{album.genres.length - 2}
-                                                </span>
+                                                <span className="px-2.5 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full font-medium border border-gray-200 dark:border-gray-600">+{album.genres.length - 2}</span>
                                             )}
                                         </div>
                                     )}

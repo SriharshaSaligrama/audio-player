@@ -128,6 +128,7 @@ export function AudioPlayer() {
                             <button
                                 onClick={previousTrack}
                                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                                aria-label="Previous track"
                             >
                                 <SkipBack className="h-5 w-5" />
                             </button>
@@ -135,20 +136,22 @@ export function AudioPlayer() {
                             <button
                                 onClick={togglePlay}
                                 disabled={state.isLoading}
-                                className="w-10 h-10 bg-green-600 hover:bg-green-700 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50"
+                                className="w-14 h-14 bg-green-600 hover:bg-green-700 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50 shadow-lg"
+                                aria-label={state.isPlaying ? 'Pause' : 'Play'}
                             >
                                 {state.isLoading ? (
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
                                 ) : state.isPlaying ? (
-                                    <Pause className="h-5 w-5" fill="currentColor" />
+                                    <Pause className="h-7 w-7" fill="currentColor" />
                                 ) : (
-                                    <Play className="h-5 w-5 ml-0.5" fill="currentColor" />
+                                    <Play className="h-7 w-7 ml-1" fill="currentColor" />
                                 )}
                             </button>
 
                             <button
                                 onClick={nextTrack}
                                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                                aria-label="Next track"
                             >
                                 <SkipForward className="h-5 w-5" />
                             </button>
@@ -156,6 +159,7 @@ export function AudioPlayer() {
                             <button
                                 onClick={() => dispatch({ type: 'TOGGLE_MINIMIZED' })}
                                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                                aria-label="Expand player"
                             >
                                 <ChevronUp className="h-5 w-5" />
                             </button>
