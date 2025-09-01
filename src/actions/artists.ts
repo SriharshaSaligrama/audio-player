@@ -198,11 +198,13 @@ export async function getFeaturedArtistsWithFollowStatus(limit = 10): Promise<Ar
     try {
         const { userId } = await auth();
         const db = await getDb();
+        const { serializeForClient } = await import('@/lib/utils/serialization');
 
         const artists = await getFeaturedArtists(limit);
 
         if (!userId) {
-            return artists.map(artist => ({ ...artist, isFollowed: false }));
+            const artistsWithFollowStatus = artists.map(artist => ({ ...artist, isFollowed: false }));
+            return serializeForClient(artistsWithFollowStatus);
         }
 
         // Get user's followed artists
@@ -213,13 +215,16 @@ export async function getFeaturedArtistsWithFollowStatus(limit = 10): Promise<Ar
 
         const followedArtistIds = new Set(followedArtists.map(follow => follow.artistId.toString()));
 
-        return artists.map(artist => ({
+        const artistsWithFollowStatus = artists.map(artist => ({
             ...artist,
             isFollowed: followedArtistIds.has(artist._id.toString())
         }));
+
+        return serializeForClient(artistsWithFollowStatus);
     } catch (error) {
         console.error('Error fetching featured artists with follow status:', error);
-        return [];
+        const { serializeForClient } = await import('@/lib/utils/serialization');
+        return serializeForClient([]);
     }
 }
 
@@ -227,9 +232,11 @@ export async function searchArtistsWithFollowStatus(query: string, limit = 20): 
     try {
         const { userId } = await auth();
         const artists = await searchArtists(query, limit);
+        const { serializeForClient } = await import('@/lib/utils/serialization');
 
         if (!userId) {
-            return artists.map(artist => ({ ...artist, isFollowed: false }));
+            const artistsWithFollowStatus = artists.map(artist => ({ ...artist, isFollowed: false }));
+            return serializeForClient(artistsWithFollowStatus);
         }
 
         const db = await getDb();
@@ -240,14 +247,18 @@ export async function searchArtistsWithFollowStatus(query: string, limit = 20): 
 
         const followedArtistIds = new Set(followedArtists.map(follow => follow.artistId.toString()));
 
-        return artists.map(artist => ({
+        const artistsWithFollowStatus = artists.map(artist => ({
             ...artist,
             isFollowed: followedArtistIds.has(artist._id.toString())
         }));
+
+        return serializeForClient(artistsWithFollowStatus);
     } catch (error) {
         console.error('Error searching artists with follow status:', error);
         const artists = await searchArtists(query, limit);
-        return artists.map(artist => ({ ...artist, isFollowed: false }));
+        const { serializeForClient } = await import('@/lib/utils/serialization');
+        const artistsWithFollowStatus = artists.map(artist => ({ ...artist, isFollowed: false }));
+        return serializeForClient(artistsWithFollowStatus);
     }
 }
 
@@ -255,9 +266,11 @@ export async function getTrendingArtistsWithFollowStatus(limit = 20): Promise<Ar
     try {
         const { userId } = await auth();
         const artists = await getTrendingArtists(limit);
+        const { serializeForClient } = await import('@/lib/utils/serialization');
 
         if (!userId) {
-            return artists.map(artist => ({ ...artist, isFollowed: false }));
+            const artistsWithFollowStatus = artists.map(artist => ({ ...artist, isFollowed: false }));
+            return serializeForClient(artistsWithFollowStatus);
         }
 
         const db = await getDb();
@@ -268,14 +281,18 @@ export async function getTrendingArtistsWithFollowStatus(limit = 20): Promise<Ar
 
         const followedArtistIds = new Set(followedArtists.map(follow => follow.artistId.toString()));
 
-        return artists.map(artist => ({
+        const artistsWithFollowStatus = artists.map(artist => ({
             ...artist,
             isFollowed: followedArtistIds.has(artist._id.toString())
         }));
+
+        return serializeForClient(artistsWithFollowStatus);
     } catch (error) {
         console.error('Error fetching trending artists with follow status:', error);
         const artists = await getTrendingArtists(limit);
-        return artists.map(artist => ({ ...artist, isFollowed: false }));
+        const { serializeForClient } = await import('@/lib/utils/serialization');
+        const artistsWithFollowStatus = artists.map(artist => ({ ...artist, isFollowed: false }));
+        return serializeForClient(artistsWithFollowStatus);
     }
 }
 
@@ -283,11 +300,13 @@ export async function getPublicArtistsWithFollowStatus(limit = 50, skip = 0): Pr
     try {
         const { userId } = await auth();
         const db = await getDb();
+        const { serializeForClient } = await import('@/lib/utils/serialization');
 
         const artists = await getPublicArtists(limit, skip);
 
         if (!userId) {
-            return artists.map(artist => ({ ...artist, isFollowed: false }));
+            const artistsWithFollowStatus = artists.map(artist => ({ ...artist, isFollowed: false }));
+            return serializeForClient(artistsWithFollowStatus);
         }
 
         // Get user's followed artists
@@ -298,12 +317,15 @@ export async function getPublicArtistsWithFollowStatus(limit = 50, skip = 0): Pr
 
         const followedArtistIds = new Set(followedArtists.map(follow => follow.artistId.toString()));
 
-        return artists.map(artist => ({
+        const artistsWithFollowStatus = artists.map(artist => ({
             ...artist,
             isFollowed: followedArtistIds.has(artist._id.toString())
         }));
+
+        return serializeForClient(artistsWithFollowStatus);
     } catch (error) {
         console.error('Error fetching artists with follow status:', error);
-        return [];
+        const { serializeForClient } = await import('@/lib/utils/serialization');
+        return serializeForClient([]);
     }
 }

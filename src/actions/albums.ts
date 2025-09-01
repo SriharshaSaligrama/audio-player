@@ -357,11 +357,13 @@ export async function getFeaturedAlbumsWithLikeStatus(limit = 10): Promise<Album
     try {
         const { userId } = await auth();
         const db = await getDb();
+        const { serializeForClient } = await import('@/lib/utils/serialization');
 
         const albums = await getFeaturedAlbums(limit);
 
         if (!userId) {
-            return albums.map(album => ({ ...album, isLiked: false }));
+            const albumsWithLikeStatus = albums.map(album => ({ ...album, isLiked: false }));
+            return serializeForClient(albumsWithLikeStatus);
         }
 
         // Get user's liked albums
@@ -372,13 +374,16 @@ export async function getFeaturedAlbumsWithLikeStatus(limit = 10): Promise<Album
 
         const likedAlbumIds = new Set(likedAlbums.map(like => like.albumId.toString()));
 
-        return albums.map(album => ({
+        const albumsWithLikeStatus = albums.map(album => ({
             ...album,
             isLiked: likedAlbumIds.has(album._id.toString())
         }));
+
+        return serializeForClient(albumsWithLikeStatus);
     } catch (error) {
         console.error('Error fetching featured albums with like status:', error);
-        return [];
+        const { serializeForClient } = await import('@/lib/utils/serialization');
+        return serializeForClient([]);
     }
 }
 
@@ -386,9 +391,11 @@ export async function getTrendingAlbumsWithLikeStatus(limit = 20): Promise<Album
     try {
         const { userId } = await auth();
         const albums = await getTrendingAlbums(limit);
+        const { serializeForClient } = await import('@/lib/utils/serialization');
 
         if (!userId) {
-            return albums.map(album => ({ ...album, isLiked: false }));
+            const albumsWithLikeStatus = albums.map(album => ({ ...album, isLiked: false }));
+            return serializeForClient(albumsWithLikeStatus);
         }
 
         const db = await getDb();
@@ -399,14 +406,18 @@ export async function getTrendingAlbumsWithLikeStatus(limit = 20): Promise<Album
 
         const likedAlbumIds = new Set(likedAlbums.map(like => like.albumId.toString()));
 
-        return albums.map(album => ({
+        const albumsWithLikeStatus = albums.map(album => ({
             ...album,
             isLiked: likedAlbumIds.has(album._id.toString())
         }));
+
+        return serializeForClient(albumsWithLikeStatus);
     } catch (error) {
         console.error('Error fetching trending albums with like status:', error);
         const albums = await getTrendingAlbums(limit);
-        return albums.map(album => ({ ...album, isLiked: false }));
+        const { serializeForClient } = await import('@/lib/utils/serialization');
+        const albumsWithLikeStatus = albums.map(album => ({ ...album, isLiked: false }));
+        return serializeForClient(albumsWithLikeStatus);
     }
 }
 
@@ -414,9 +425,11 @@ export async function getRecentAlbumsWithLikeStatus(limit = 20): Promise<AlbumWi
     try {
         const { userId } = await auth();
         const albums = await getRecentAlbums(limit);
+        const { serializeForClient } = await import('@/lib/utils/serialization');
 
         if (!userId) {
-            return albums.map(album => ({ ...album, isLiked: false }));
+            const albumsWithLikeStatus = albums.map(album => ({ ...album, isLiked: false }));
+            return serializeForClient(albumsWithLikeStatus);
         }
 
         const db = await getDb();
@@ -427,14 +440,18 @@ export async function getRecentAlbumsWithLikeStatus(limit = 20): Promise<AlbumWi
 
         const likedAlbumIds = new Set(likedAlbums.map(like => like.albumId.toString()));
 
-        return albums.map(album => ({
+        const albumsWithLikeStatus = albums.map(album => ({
             ...album,
             isLiked: likedAlbumIds.has(album._id.toString())
         }));
+
+        return serializeForClient(albumsWithLikeStatus);
     } catch (error) {
         console.error('Error fetching recent albums with like status:', error);
         const albums = await getRecentAlbums(limit);
-        return albums.map(album => ({ ...album, isLiked: false }));
+        const { serializeForClient } = await import('@/lib/utils/serialization');
+        const albumsWithLikeStatus = albums.map(album => ({ ...album, isLiked: false }));
+        return serializeForClient(albumsWithLikeStatus);
     }
 }
 
@@ -442,9 +459,11 @@ export async function searchAlbumsWithLikeStatus(query: string, limit = 20): Pro
     try {
         const { userId } = await auth();
         const albums = await searchAlbums(query, limit);
+        const { serializeForClient } = await import('@/lib/utils/serialization');
 
         if (!userId) {
-            return albums.map(album => ({ ...album, isLiked: false }));
+            const albumsWithLikeStatus = albums.map(album => ({ ...album, isLiked: false }));
+            return serializeForClient(albumsWithLikeStatus);
         }
 
         const db = await getDb();
@@ -455,14 +474,18 @@ export async function searchAlbumsWithLikeStatus(query: string, limit = 20): Pro
 
         const likedAlbumIds = new Set(likedAlbums.map(like => like.albumId.toString()));
 
-        return albums.map(album => ({
+        const albumsWithLikeStatus = albums.map(album => ({
             ...album,
             isLiked: likedAlbumIds.has(album._id.toString())
         }));
+
+        return serializeForClient(albumsWithLikeStatus);
     } catch (error) {
         console.error('Error searching albums with like status:', error);
         const albums = await searchAlbums(query, limit);
-        return albums.map(album => ({ ...album, isLiked: false }));
+        const { serializeForClient } = await import('@/lib/utils/serialization');
+        const albumsWithLikeStatus = albums.map(album => ({ ...album, isLiked: false }));
+        return serializeForClient(albumsWithLikeStatus);
     }
 }
 
@@ -470,9 +493,11 @@ export async function getAlbumsByArtistWithLikeStatus(artistId: string, limit = 
     try {
         const { userId } = await auth();
         const albums = await getAlbumsByArtist(artistId, limit);
+        const { serializeForClient } = await import('@/lib/utils/serialization');
 
         if (!userId) {
-            return albums.map(album => ({ ...album, isLiked: false }));
+            const albumsWithLikeStatus = albums.map(album => ({ ...album, isLiked: false }));
+            return serializeForClient(albumsWithLikeStatus);
         }
 
         const db = await getDb();
@@ -482,13 +507,17 @@ export async function getAlbumsByArtistWithLikeStatus(artistId: string, limit = 
 
         const likedAlbumIds = new Set(likedAlbums.map(like => like.albumId.toString()));
 
-        return albums.map(album => ({
+        const albumsWithLikeStatus = albums.map(album => ({
             ...album,
             isLiked: likedAlbumIds.has(album._id.toString())
         }));
+
+        return serializeForClient(albumsWithLikeStatus);
     } catch (error) {
         console.error('Error fetching albums by artist with like status:', error);
         const albums = await getAlbumsByArtist(artistId, limit);
-        return albums.map(album => ({ ...album, isLiked: false }));
+        const { serializeForClient } = await import('@/lib/utils/serialization');
+        const albumsWithLikeStatus = albums.map(album => ({ ...album, isLiked: false }));
+        return serializeForClient(albumsWithLikeStatus);
     }
 }

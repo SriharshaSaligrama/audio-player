@@ -499,9 +499,11 @@ export async function getPublicTracksWithLikeStatus(limit = 50, skip = 0): Promi
     try {
         const { userId } = await auth();
         const tracks = await getPublicTracks(limit, skip);
+        const { serializeForClient } = await import('@/lib/utils/serialization');
 
         if (!userId) {
-            return tracks.map(track => ({ ...track, isLiked: false }));
+            const tracksWithLikeStatus = tracks.map(track => ({ ...track, isLiked: false }));
+            return serializeForClient(tracksWithLikeStatus);
         }
 
         const db = await getDb();
@@ -511,14 +513,18 @@ export async function getPublicTracksWithLikeStatus(limit = 50, skip = 0): Promi
 
         const likedTrackIds = new Set(likedTracks.map(extractTrackIdFromLike).filter(id => id));
 
-        return tracks.map(track => ({
+        const tracksWithLikeStatus = tracks.map(track => ({
             ...track,
             isLiked: likedTrackIds.has(track._id.toString())
         }));
+
+        return serializeForClient(tracksWithLikeStatus);
     } catch (error) {
         console.error('Error fetching public tracks with like status:', error);
         const tracks = await getPublicTracks(limit, skip);
-        return tracks.map(track => ({ ...track, isLiked: false }));
+        const { serializeForClient } = await import('@/lib/utils/serialization');
+        const tracksWithLikeStatus = tracks.map(track => ({ ...track, isLiked: false }));
+        return serializeForClient(tracksWithLikeStatus);
     }
 }
 
@@ -526,9 +532,11 @@ export async function getTrendingTracksWithLikeStatus(limit = 20): Promise<Track
     try {
         const { userId } = await auth();
         const tracks = await getTrendingTracks(limit);
+        const { serializeForClient } = await import('@/lib/utils/serialization');
 
         if (!userId) {
-            return tracks.map(track => ({ ...track, isLiked: false }));
+            const tracksWithLikeStatus = tracks.map(track => ({ ...track, isLiked: false }));
+            return serializeForClient(tracksWithLikeStatus);
         }
 
         const db = await getDb();
@@ -538,14 +546,18 @@ export async function getTrendingTracksWithLikeStatus(limit = 20): Promise<Track
 
         const likedTrackIds = new Set(likedTracks.map(extractTrackIdFromLike).filter(id => id));
 
-        return tracks.map(track => ({
+        const tracksWithLikeStatus = tracks.map(track => ({
             ...track,
             isLiked: likedTrackIds.has(track._id.toString())
         }));
+
+        return serializeForClient(tracksWithLikeStatus);
     } catch (error) {
         console.error('Error fetching trending tracks with like status:', error);
         const tracks = await getTrendingTracks(limit);
-        return tracks.map(track => ({ ...track, isLiked: false }));
+        const { serializeForClient } = await import('@/lib/utils/serialization');
+        const tracksWithLikeStatus = tracks.map(track => ({ ...track, isLiked: false }));
+        return serializeForClient(tracksWithLikeStatus);
     }
 }
 
@@ -553,9 +565,11 @@ export async function getTracksByArtistWithLikeStatus(artistId: string, limit = 
     try {
         const { userId } = await auth();
         const tracks = await getTracksByArtist(artistId, limit);
+        const { serializeForClient } = await import('@/lib/utils/serialization');
 
         if (!userId) {
-            return tracks.map(track => ({ ...track, isLiked: false }));
+            const tracksWithLikeStatus = tracks.map(track => ({ ...track, isLiked: false }));
+            return serializeForClient(tracksWithLikeStatus);
         }
 
         const db = await getDb();
@@ -565,14 +579,18 @@ export async function getTracksByArtistWithLikeStatus(artistId: string, limit = 
 
         const likedTrackIds = new Set(likedTracks.map(extractTrackIdFromLike).filter(id => id));
 
-        return tracks.map(track => ({
+        const tracksWithLikeStatus = tracks.map(track => ({
             ...track,
             isLiked: likedTrackIds.has(track._id.toString())
         }));
+
+        return serializeForClient(tracksWithLikeStatus);
     } catch (error) {
         console.error('Error fetching tracks by artist with like status:', error);
         const tracks = await getTracksByArtist(artistId, limit);
-        return tracks.map(track => ({ ...track, isLiked: false }));
+        const { serializeForClient } = await import('@/lib/utils/serialization');
+        const tracksWithLikeStatus = tracks.map(track => ({ ...track, isLiked: false }));
+        return serializeForClient(tracksWithLikeStatus);
     }
 }
 
@@ -580,9 +598,11 @@ export async function searchTracksWithLikeStatus(query: string, limit = 20): Pro
     try {
         const { userId } = await auth();
         const tracks = await searchTracks(query, limit);
+        const { serializeForClient } = await import('@/lib/utils/serialization');
 
         if (!userId) {
-            return tracks.map(track => ({ ...track, isLiked: false }));
+            const tracksWithLikeStatus = tracks.map(track => ({ ...track, isLiked: false }));
+            return serializeForClient(tracksWithLikeStatus);
         }
 
         const db = await getDb();
@@ -592,14 +612,18 @@ export async function searchTracksWithLikeStatus(query: string, limit = 20): Pro
 
         const likedTrackIds = new Set(likedTracks.map(extractTrackIdFromLike).filter(id => id));
 
-        return tracks.map(track => ({
+        const tracksWithLikeStatus = tracks.map(track => ({
             ...track,
             isLiked: likedTrackIds.has(track._id.toString())
         }));
+
+        return serializeForClient(tracksWithLikeStatus);
     } catch (error) {
         console.error('Error searching tracks with like status:', error);
         const tracks = await searchTracks(query, limit);
-        return tracks.map(track => ({ ...track, isLiked: false }));
+        const { serializeForClient } = await import('@/lib/utils/serialization');
+        const tracksWithLikeStatus = tracks.map(track => ({ ...track, isLiked: false }));
+        return serializeForClient(tracksWithLikeStatus);
     }
 }
 
@@ -607,9 +631,11 @@ export async function getTracksByAlbumWithLikeStatus(albumId: string): Promise<T
     try {
         const { userId } = await auth();
         const tracks = await getTracksByAlbum(albumId);
+        const { serializeForClient } = await import('@/lib/utils/serialization');
 
         if (!userId) {
-            return tracks.map(track => ({ ...track, isLiked: false }));
+            const tracksWithLikeStatus = tracks.map(track => ({ ...track, isLiked: false }));
+            return serializeForClient(tracksWithLikeStatus);
         }
 
         const db = await getDb();
@@ -619,13 +645,17 @@ export async function getTracksByAlbumWithLikeStatus(albumId: string): Promise<T
 
         const likedTrackIds = new Set(likedTracks.map(extractTrackIdFromLike).filter(id => id));
 
-        return tracks.map(track => ({
+        const tracksWithLikeStatus = tracks.map(track => ({
             ...track,
             isLiked: likedTrackIds.has(track._id.toString())
         }));
+
+        return serializeForClient(tracksWithLikeStatus);
     } catch (error) {
         console.error('Error fetching tracks by album with like status:', error);
         const tracks = await getTracksByAlbum(albumId);
-        return tracks.map(track => ({ ...track, isLiked: false }));
+        const { serializeForClient } = await import('@/lib/utils/serialization');
+        const tracksWithLikeStatus = tracks.map(track => ({ ...track, isLiked: false }));
+        return serializeForClient(tracksWithLikeStatus);
     }
 }
