@@ -87,7 +87,7 @@ export default async function AdminAlbumsPage() {
                         <Link
                             key={String(album._id)}
                             href={`/admin/albums/${String(album._id)}`}
-                            className="group relative bg-gradient-to-br from-white via-gray-50/50 to-blue-50/60 dark:from-gray-800 dark:via-gray-800 dark:to-blue-900/20 rounded-3xl border-2 border-gray-200/80 dark:border-gray-700/60 shadow-lg shadow-gray-200/40 dark:shadow-none overflow-hidden hover:shadow-2xl hover:shadow-blue-500/25 dark:hover:shadow-blue-500/10 hover:border-blue-300/60 dark:hover:border-blue-600/60 transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] backdrop-blur-sm"
+                            className="group relative bg-gradient-to-br from-white via-gray-50/50 to-blue-50/60 dark:from-gray-800 dark:via-gray-800 dark:to-blue-900/20 rounded-3xl border-2 border-gray-200/80 dark:border-gray-700/60 shadow-lg shadow-gray-200/40 dark:shadow-none overflow-hidden hover:shadow-2xl hover:shadow-blue-500/25 dark:hover:shadow-blue-500/10 hover:border-blue-300/60 dark:hover:border-blue-600/60 transition-all duration-500 hover:scale-[1.02] backdrop-blur-sm"
                         >
                             {/* Animated Background Pattern */}
                             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/8 via-indigo-500/8 to-purple-500/8 dark:from-blue-500/3 dark:via-indigo-500/3 dark:to-purple-500/3 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

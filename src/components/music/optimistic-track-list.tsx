@@ -97,11 +97,11 @@ export function OptimisticTrackList({
                 return (
                     <div
                         key={trackId}
-                        className="group flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                        className="group flex items-center gap-2 sm:gap-4 p-2 sm:p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                     >
                         {/* Track Number / Play Button */}
-                        <div className="w-8 flex items-center justify-center">
-                            <span className="text-sm text-gray-500 dark:text-gray-400 group-hover:hidden">
+                        <div className="w-6 sm:w-8 flex items-center justify-center flex-shrink-0">
+                            <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 group-hover:hidden">
                                 {index + 1}
                             </span>
                             <div className="hidden group-hover:block">
@@ -116,19 +116,19 @@ export function OptimisticTrackList({
                         </div>
 
                         {/* Cover Art */}
-                        <div className="relative w-12 h-12 flex-shrink-0">
+                        <div className="relative w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0">
                             {coverImage ? (
                                 <Image
                                     src={`${coverImage}${coverImage.includes('?') ? '&' : '?'}t=${Date.now()}`}
                                     alt={track.title}
                                     width={48}
                                     height={48}
-                                    className="rounded-lg object-cover"
+                                    className="rounded-lg object-cover w-full h-full"
                                     unoptimized={true}
                                 />
                             ) : (
-                                <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                                    <Play className="h-5 w-5 text-gray-400" />
+                                <div className="w-full h-full bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                                    <Play className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                                 </div>
                             )}
                         </div>
@@ -138,36 +138,39 @@ export function OptimisticTrackList({
                             <div className="flex items-center gap-2">
                                 <Link
                                     href={`/tracks/${track._id}`}
-                                    className="font-medium text-gray-900 dark:text-white hover:text-green-600 dark:hover:text-green-400 transition-colors truncate"
+                                    className="font-medium text-sm sm:text-base text-gray-900 dark:text-white hover:text-green-600 dark:hover:text-green-400 transition-colors truncate"
                                 >
                                     {track.title}
                                 </Link>
                             </div>
 
-                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
                                 {showArtist && track.artistDetails && track.artistDetails.length > 0 && (
                                     <>
-                                        <div className="flex items-center gap-1">
-                                            {track.artistDetails.map((artist, idx: number) => (
-                                                <span key={String(artist._id)}>
+                                        <div className="flex items-center gap-1 truncate">
+                                            {track.artistDetails.slice(0, 2).map((artist, idx: number) => (
+                                                <span key={String(artist._id)} className="truncate">
                                                     <Link
                                                         href={`/artists/${artist._id}`}
                                                         className="hover:text-gray-900 dark:hover:text-white transition-colors"
                                                     >
                                                         {artist.name}
                                                     </Link>
-                                                    {idx < track.artistDetails.length - 1 && ', '}
+                                                    {idx < Math.min(track.artistDetails.length - 1, 1) && ', '}
                                                 </span>
                                             ))}
+                                            {track.artistDetails.length > 2 && (
+                                                <span className="text-gray-400">& {track.artistDetails.length - 2} more</span>
+                                            )}
                                         </div>
-                                        {showAlbum && albumTitle && <span>•</span>}
+                                        {showAlbum && albumTitle && <span className="hidden sm:inline">•</span>}
                                     </>
                                 )}
 
                                 {showAlbum && albumTitle && (
                                     <Link
                                         href={`/albums/${track.defaultAlbumDetails?._id || track.albumDetails?.[0]?._id}`}
-                                        className="hover:text-gray-900 dark:hover:text-white transition-colors truncate"
+                                        className="hover:text-gray-900 dark:hover:text-white transition-colors truncate hidden sm:inline"
                                     >
                                         {albumTitle}
                                     </Link>
@@ -175,30 +178,52 @@ export function OptimisticTrackList({
                             </div>
                         </div>
 
-                        {/* Play Count */}
+                        {/* Play Count - Hidden on mobile */}
                         {showPlayCount && (
-                            <div className="hidden sm:flex items-center text-sm text-gray-500 dark:text-gray-400 min-w-0">
-                                {formatPlayCount(track.stats?.plays)}
+                            <div className="hidden md:flex items-center text-xs sm:text-sm text-gray-500 dark:text-gray-400 min-w-0 flex-shrink-0">
+                                <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">
+                                    {formatPlayCount(track.stats?.plays)}
+                                </span>
                             </div>
                         )}
 
-                        {/* Duration */}
-                        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                            <div className="opacity-0 group-hover:opacity-100 transition-all">
+                        {/* Actions & Duration */}
+                        <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
+                            {/* Like Button - Hidden on mobile, shown on hover */}
+                            <div className="hidden sm:block opacity-0 group-hover:opacity-100 transition-all">
                                 <OptimisticLikeButton
                                     type="track"
                                     id={trackId}
                                     initialLiked={track.isLiked}
                                     onLikeChange={(newState) => handleLikeChange(trackId, newState)}
                                     showText={false}
-                                    className="p-2 border-none hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full w-8 h-8 flex items-center justify-center"
+                                    className="p-1.5 sm:p-2 border-none hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center"
                                 />
                             </div>
+
+                            {/* Duration */}
                             <span className="flex items-center gap-1 min-w-0">
                                 <Clock className="h-3 w-3" />
-                                {formatDuration(track.duration)}
+                                <span className="hidden sm:inline">{formatDuration(track.duration)}</span>
+                                <span className="sm:hidden">
+                                    {(() => {
+                                        const duration = track.duration || 0;
+                                        const minutes = Math.floor(duration / 60);
+                                        const seconds = duration % 60;
+
+                                        if (minutes === 0) {
+                                            return `${seconds}s`;
+                                        } else if (minutes < 10) {
+                                            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                                        } else {
+                                            return `${minutes}m`;
+                                        }
+                                    })()}
+                                </span>
                             </span>
-                            <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-all">
+
+                            {/* More Options - Hidden on mobile */}
+                            <button className="hidden sm:block opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-all">
                                 <MoreHorizontal className="h-4 w-4" />
                             </button>
                         </div>

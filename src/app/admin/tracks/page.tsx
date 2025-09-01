@@ -102,7 +102,7 @@ export default async function AdminTracksPage() {
                         <Link
                             key={String(track._id)}
                             href={`/admin/tracks/${String(track._id)}`}
-                            className="group relative bg-gradient-to-br from-white via-gray-50/50 to-blue-50/60 dark:from-gray-800 dark:via-gray-800 dark:to-gray-900/50 rounded-3xl border-2 border-gray-200/80 dark:border-gray-700/60 shadow-lg shadow-gray-200/40 dark:shadow-none overflow-hidden hover:shadow-2xl hover:shadow-blue-500/25 dark:hover:shadow-blue-500/5 hover:border-blue-300/60 dark:hover:border-blue-600/60 transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] backdrop-blur-sm"
+                            className="group relative bg-gradient-to-br from-white via-gray-50/50 to-blue-50/60 dark:from-gray-800 dark:via-gray-800 dark:to-gray-900/50 rounded-3xl border-2 border-gray-200/80 dark:border-gray-700/60 shadow-lg shadow-gray-200/40 dark:shadow-none overflow-hidden hover:shadow-2xl hover:shadow-blue-500/25 dark:hover:shadow-blue-500/5 hover:border-blue-300/60 dark:hover:border-blue-600/60 transition-all duration-500 hover:scale-[1.02] backdrop-blur-sm"
                         >
                             {/* Animated Background Gradient */}
                             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/8 via-purple-500/8 to-pink-500/8 dark:from-blue-500/5 dark:via-purple-500/5 dark:to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

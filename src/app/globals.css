@@ -669,3 +669,22 @@ o Player Slider Styles */
 .visualizer-bar:nth-child(4) {
     animation-delay: 0.3s;
 }
+
+/* Carousel Scrollbar Hide */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* Carousel Navigation */
+.carousel-nav-button {
+    opacity: 0;
+}
+
+.carousel-wrapper:hover .carousel-nav-button {
+    opacity: 1;
+}

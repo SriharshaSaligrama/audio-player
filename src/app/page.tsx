@@ -1,19 +1,23 @@
 import { SignInButton } from '@clerk/nextjs';
 import { auth } from '@clerk/nextjs/server';
-import Link from 'next/link';
 import { Play, Music, Users, TrendingUp } from 'lucide-react';
 import { getFeaturedContent } from '@/actions/search';
 import { OptimisticTrackList } from '@/components/music/optimistic-track-list';
-import { OptimisticAlbumGrid } from '@/components/music/optimistic-album-grid';
-import { OptimisticArtistGrid } from '@/components/music/optimistic-artist-grid';
+import { AlbumCarousel } from '@/components/music/album-carousel';
+import { ArtistCarousel } from '@/components/music/artist-carousel';
 import { serializeTracks, serializeAlbums, serializeArtists } from '@/lib/utils/serialization';
+import Link from 'next/link';
 
 export default async function Home() {
     const { userId } = await auth();
     const isSignedIn = !!userId;
 
-    // Get featured content for the homepage
-    const { featuredTracks, featuredAlbums, featuredArtists } = await getFeaturedContent();
+    // Get featured content for the homepage with exact limits needed
+    const { featuredTracks, featuredAlbums, featuredArtists } = await getFeaturedContent({
+        tracks: 6,  // For trending tracks section
+        albums: 8,  // For album carousel
+        artists: 10 // For artist carousel
+    });
 
     // Serialize data for client components
     const serializedTracks = serializeTracks(featuredTracks);
@@ -43,7 +47,7 @@ export default async function Home() {
 
             {/* Quick Navigation */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Link href="/tracks" className="group bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white hover:from-blue-600 hover:to-blue-700 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                <Link href="/tracks" className="group bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white hover:from-blue-600 hover:to-blue-700 transition-all duration-300 hover:shadow-lg">
                     <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                             <Music className="h-6 w-6" />
@@ -55,7 +59,7 @@ export default async function Home() {
                     </div>
                 </Link>
 
-                <Link href="/albums" className="group bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white hover:from-purple-600 hover:to-purple-700 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                <Link href="/albums" className="group bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white hover:from-purple-600 hover:to-purple-700 transition-all duration-300 hover:shadow-lg">
                     <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                             <Play className="h-6 w-6" />
@@ -67,7 +71,7 @@ export default async function Home() {
                     </div>
                 </Link>
 
-                <Link href="/artists" className="group bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white hover:from-green-600 hover:to-green-700 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                <Link href="/artists" className="group bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white hover:from-green-600 hover:to-green-700 transition-all duration-300 hover:shadow-lg">
                     <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                             <Users className="h-6 w-6" />
@@ -79,7 +83,7 @@ export default async function Home() {
                     </div>
                 </Link>
 
-                <Link href="/search" className="group bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white hover:from-orange-600 hover:to-orange-700 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                <Link href="/search" className="group bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white hover:from-orange-600 hover:to-orange-700 transition-all duration-300 hover:shadow-lg">
                     <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                             <TrendingUp className="h-6 w-6" />
@@ -95,51 +99,37 @@ export default async function Home() {
             {/* Featured Tracks */}
             {serializedTracks.length > 0 && (
                 <section>
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Trending Tracks</h2>
+                    <div className="flex items-center justify-between mb-4 sm:mb-6">
+                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Trending Tracks</h2>
                         <Link
                             href="/tracks"
-                            className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 font-medium transition-colors"
+                            className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 font-medium transition-colors text-sm sm:text-base hover:underline"
                         >
                             View All
                         </Link>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                        <OptimisticTrackList tracks={serializedTracks.slice(0, 6)} />
+                    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3 sm:p-6 overflow-hidden">
+                        <OptimisticTrackList tracks={serializedTracks} />
                     </div>
                 </section>
             )}
 
             {/* Featured Albums */}
             {serializedAlbums.length > 0 && (
-                <section>
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Featured Albums</h2>
-                        <Link
-                            href="/albums"
-                            className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 font-medium transition-colors"
-                        >
-                            View All
-                        </Link>
-                    </div>
-                    <OptimisticAlbumGrid albums={serializedAlbums} columns={3} />
-                </section>
+                <AlbumCarousel
+                    albums={serializedAlbums}
+                    title="Featured Albums"
+                    viewAllHref="/albums"
+                />
             )}
 
             {/* Featured Artists */}
             {serializedArtists.length > 0 && (
-                <section>
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Featured Artists</h2>
-                        <Link
-                            href="/artists"
-                            className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 font-medium transition-colors"
-                        >
-                            View All
-                        </Link>
-                    </div>
-                    <OptimisticArtistGrid artists={serializedArtists} columns={4} />
-                </section>
+                <ArtistCarousel
+                    artists={serializedArtists}
+                    title="Featured Artists"
+                    viewAllHref="/artists"
+                />
             )}
 
             {/* Sign Up CTA for non-authenticated users */}

@@ -72,7 +72,7 @@ export function OptimisticArtistGrid({ artists, columns = 4 }: OptimisticArtistG
                         href={`/artists/${artistId}`}
                         className="group block h-full"
                     >
-                        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl hover:shadow-black/10 dark:hover:shadow-black/30 transition-all duration-300 hover:-translate-y-2 h-full">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl hover:shadow-black/10 dark:hover:shadow-black/30 transition-all duration-300 h-full">
                             <div className="p-6 text-center h-full flex flex-col">
                                 {/* Artist Avatar */}
                                 <div className="relative mb-6 flex-shrink-0">
@@ -107,7 +107,7 @@ export function OptimisticArtistGrid({ artists, columns = 4 }: OptimisticArtistG
                                     </div>
 
                                     {/* Follow Button - Bottom Right */}
-                                    <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                                    <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform">
                                         <OptimisticFollowButtonWithCount
                                             artistId={artistId}
                                             initialFollowing={'isFollowed' in artist ? artist.isFollowed : false}

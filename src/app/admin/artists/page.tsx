@@ -51,7 +51,7 @@ export default async function AdminArtistsPage() {
                     <Link
                         key={String(artist._id)}
                         href={`/admin/artists/${String(artist._id)}`}
-                        className="group relative bg-gradient-to-br from-white via-gray-50/50 to-purple-50/60 dark:from-gray-800 dark:via-gray-800 dark:to-purple-900/20 rounded-3xl border-2 border-gray-200/80 dark:border-gray-700/60 shadow-lg shadow-gray-200/40 dark:shadow-none overflow-hidden hover:shadow-2xl hover:shadow-purple-500/25 dark:hover:shadow-purple-500/10 hover:border-purple-300/60 dark:hover:border-purple-600/60 transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] backdrop-blur-sm"
+                        className="group relative bg-gradient-to-br from-white via-gray-50/50 to-purple-50/60 dark:from-gray-800 dark:via-gray-800 dark:to-purple-900/20 rounded-3xl border-2 border-gray-200/80 dark:border-gray-700/60 shadow-lg shadow-gray-200/40 dark:shadow-none overflow-hidden hover:shadow-2xl hover:shadow-purple-500/25 dark:hover:shadow-purple-500/10 hover:border-purple-300/60 dark:hover:border-purple-600/60 transition-all duration-500 hover:scale-[1.02] backdrop-blur-sm"
                     >
                         {/* Animated Background Elements */}
                         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/8 via-pink-500/8 to-blue-500/8 dark:from-purple-500/3 dark:via-pink-500/3 dark:to-blue-500/3 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

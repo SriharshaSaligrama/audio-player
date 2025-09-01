@@ -155,7 +155,7 @@ export function AdminSidebar() {
                                         <span className="ml-3 truncate font-medium">{item.name}</span>
                                     )}
                                     {isActive && (
-                                        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-blue-600 dark:bg-blue-400 rounded-r-full"></div>
+                                        <div className="absolute left-0 top-1/2 transform w-1 h-8 bg-blue-600 dark:bg-blue-400 rounded-r-full"></div>
                                     )}
                                     {isActive && !isCollapsed && (
                                         <div className="ml-auto w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full animate-pulse"></div>

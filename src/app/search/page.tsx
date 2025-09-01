@@ -6,7 +6,6 @@ import { globalSearchWithStatus, SearchResultsWithStatus } from '@/actions/searc
 import { OptimisticTrackList } from '@/components/music/optimistic-track-list';
 import { OptimisticAlbumGrid } from '@/components/music/optimistic-album-grid';
 import { OptimisticArtistGrid } from '@/components/music/optimistic-artist-grid';
-import { serializeTracks, serializeAlbums, serializeArtists } from '@/lib/utils/serialization';
 
 export default function SearchPage() {
     const [query, setQuery] = useState('');
@@ -29,14 +28,7 @@ export default function SearchPage() {
         setIsLoading(true);
         try {
             const searchResults = await globalSearchWithStatus(searchQuery);
-            // Serialize the results for client components
-            const serializedResults = {
-                tracks: serializeTracks(searchResults.tracks),
-                albums: serializeAlbums(searchResults.albums),
-                artists: serializeArtists(searchResults.artists),
-                totalResults: searchResults.totalResults
-            };
-            setResults(serializedResults);
+            setResults(searchResults);
             setHasSearched(true);
         } catch (error) {
             console.error('Search error:', error);

@@ -58,7 +58,7 @@ export function OptimisticAlbumGrid({ albums, columns = 4 }: OptimisticAlbumGrid
                         href={`/albums/${albumId}`}
                         className="group block h-full"
                     >
-                        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl hover:shadow-black/10 dark:hover:shadow-black/30 transition-all duration-300 hover:-translate-y-2 h-full flex flex-col">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl hover:shadow-black/10 dark:hover:shadow-black/30 transition-all duration-300 h-full flex flex-col">
                             {/* Album Cover */}
                             <div className="relative aspect-square overflow-hidden">
                                 {album.coverImage ? (
@@ -92,7 +92,7 @@ export function OptimisticAlbumGrid({ albums, columns = 4 }: OptimisticAlbumGrid
                                 </div>
 
                                 {/* Like Button - Bottom Right Corner */}
-                                <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                                <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform">
                                     <OptimisticLikeButton
                                         type="album"
                                         id={albumId}

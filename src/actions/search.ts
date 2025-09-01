@@ -25,6 +25,8 @@ export async function globalSearch(query: string, limit = 10): Promise<SearchRes
             };
         }
 
+        const { serializeForClient } = await import('@/lib/utils/serialization');
+
         // Search in parallel for better performance
         const [tracks, albums, artists] = await Promise.all([
             searchTracks(query, limit),
@@ -32,12 +34,15 @@ export async function globalSearch(query: string, limit = 10): Promise<SearchRes
             searchArtists(query, limit)
         ]);
 
-        return {
-            tracks,
-            albums,
-            artists,
+        // Serialize the results to ensure they're safe for client components
+        const serializedResults = {
+            tracks: serializeForClient(tracks),
+            albums: serializeForClient(albums),
+            artists: serializeForClient(artists),
             totalResults: tracks.length + albums.length + artists.length
         };
+
+        return serializedResults;
     } catch (error) {
         console.error('Error performing global search:', error);
         return {
@@ -82,6 +87,7 @@ export async function getGenres(): Promise<string[]> {
 export async function getTracksByGenre(genre: string, limit = 50): Promise<TrackWithDetails[]> {
     try {
         const db = await getDb();
+        const { serializeForClient } = await import('@/lib/utils/serialization');
 
         const tracks = await db.collection(Collections.TRACKS).aggregate<TrackWithDetails>([
             {
@@ -155,14 +161,18 @@ export async function getTracksByGenre(genre: string, limit = 50): Promise<Track
             { $limit: limit }
         ]).toArray();
 
-        return tracks;
+        return serializeForClient(tracks);
     } catch (error) {
         console.error('Error fetching tracks by genre:', error);
         return [];
     }
 }
 
-export async function getFeaturedContent(): Promise<{
+export async function getFeaturedContent(limits?: {
+    tracks?: number;
+    albums?: number;
+    artists?: number;
+}): Promise<{
     featuredTracks: TrackWithLikeStatus[];
     featuredAlbums: AlbumWithLikeStatus[];
     featuredArtists: ArtistWithFollowStatus[];
@@ -171,18 +181,25 @@ export async function getFeaturedContent(): Promise<{
         const { getTrendingTracksWithLikeStatus } = await import('./tracks');
         const { getFeaturedAlbumsWithLikeStatus } = await import('./albums');
         const { getFeaturedArtistsWithFollowStatus } = await import('./artists');
+        const { serializeForClient } = await import('@/lib/utils/serialization');
+
+        // Use provided limits or defaults
+        const trackLimit = limits?.tracks ?? 8;
+        const albumLimit = limits?.albums ?? 6;
+        const artistLimit = limits?.artists ?? 8;
 
         // Get featured content in parallel
         const [featuredTracks, featuredAlbums, featuredArtists] = await Promise.all([
-            getTrendingTracksWithLikeStatus(8),
-            getFeaturedAlbumsWithLikeStatus(6),
-            getFeaturedArtistsWithFollowStatus(8)
+            getTrendingTracksWithLikeStatus(trackLimit),
+            getFeaturedAlbumsWithLikeStatus(albumLimit),
+            getFeaturedArtistsWithFollowStatus(artistLimit)
         ]);
 
+        // Serialize the results to ensure they're safe for client components
         return {
-            featuredTracks,
-            featuredAlbums,
-            featuredArtists
+            featuredTracks: serializeForClient(featuredTracks),
+            featuredAlbums: serializeForClient(featuredAlbums),
+            featuredArtists: serializeForClient(featuredArtists)
         };
     } catch (error) {
         console.error('Error fetching featured content:', error);
@@ -215,6 +232,7 @@ export async function globalSearchWithStatus(query: string, limit = 10): Promise
         const { searchTracksWithLikeStatus } = await import('./tracks');
         const { searchAlbumsWithLikeStatus } = await import('./albums');
         const { searchArtistsWithFollowStatus } = await import('./artists');
+        const { serializeForClient } = await import('@/lib/utils/serialization');
 
         // Search in parallel for better performance
         const [tracks, albums, artists] = await Promise.all([
@@ -223,12 +241,15 @@ export async function globalSearchWithStatus(query: string, limit = 10): Promise
             searchArtistsWithFollowStatus(query, limit)
         ]);
 
-        return {
-            tracks,
-            albums,
-            artists,
+        // Serialize the results to ensure they're safe for client components
+        const serializedResults = {
+            tracks: serializeForClient(tracks),
+            albums: serializeForClient(albums),
+            artists: serializeForClient(artists),
             totalResults: tracks.length + albums.length + artists.length
         };
+
+        return serializedResults;
     } catch (error) {
         console.error('Error performing global search with status:', error);
         return {

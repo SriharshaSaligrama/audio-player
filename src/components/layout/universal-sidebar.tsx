@@ -18,7 +18,6 @@ import {
     Home,
     Search,
     Library,
-    Heart,
     User,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
@@ -41,7 +40,6 @@ const getNavigationItems = (isAdmin: boolean, isSignedIn: boolean) => {
             { name: 'Home', href: '/', icon: Home },
             { name: 'Search', href: '/search', icon: Search },
             { name: 'Library', href: '/library', icon: Library },
-            { name: 'Liked Songs', href: '/liked', icon: Heart },
             { name: 'Profile', href: '/profile', icon: User },
         ];
     }
