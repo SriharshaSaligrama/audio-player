@@ -468,3 +468,51 @@ export async function recalculateAlbumStatistics(albumId?: string) {
         return { success: false, message: 'Unknown error' };
     }
 }
+
+/**
+ * Recalculate track statistics based on actual user interactions
+ * This fixes inconsistencies between track stats and user interaction collections
+ */
+export async function recalculateTrackStatistics(trackId?: string) {
+    try {
+        await requireAdmin();
+        const db = await getDb();
+
+        const trackFilter = trackId ? { _id: new ObjectId(trackId) } : {};
+        const tracks = await db.collection(Collections.TRACKS).find(trackFilter).toArray();
+
+        for (const track of tracks) {
+            // Count actual likes from user_liked_songs collection
+            const actualLikes = await db.collection(Collections.USER_LIKED_SONGS).countDocuments({
+                trackId: track._id
+            });
+
+            // Count actual plays from play_history collection
+            const actualPlays = await db.collection(Collections.PLAY_HISTORY).countDocuments({
+                trackId: track._id
+            });
+
+            // Update the track with correct statistics
+            await db.collection(Collections.TRACKS).updateOne(
+                { _id: track._id },
+                {
+                    $set: {
+                        'stats.likes': actualLikes,
+                        'stats.plays': actualPlays,
+                        updatedAt: new Date()
+                    }
+                }
+            );
+        }
+
+        return { success: true, message: `Updated statistics for ${tracks.length} track(s)` };
+    } catch (error) {
+        try {
+            handleActionError({ error, source: 'recalculateTrackStatistics', details: { trackId } });
+        } catch (e) {
+            const err = e as CustomError;
+            return { success: false, message: err.message };
+        }
+        return { success: false, message: 'Unknown error' };
+    }
+}

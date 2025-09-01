@@ -300,3 +300,18 @@ export async function recreateCollectionsWithCorrectValidators() {
         };
     }
 }
+
+export async function fixTrackLikeCounts() {
+    try {
+        const { recalculateTrackStatistics } = await import('@/actions/admin/tracks');
+        const result = await recalculateTrackStatistics();
+        return result;
+    } catch (error) {
+        console.error('Fix track like counts error:', error);
+        return {
+            success: false,
+            message: 'Failed to fix track like counts',
+            error: error instanceof Error ? error.message : String(error)
+        };
+    }
+}
