@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Search } from 'lucide-react';
 import { searchArtistsWithFollowStatus } from '@/actions/artists';
 import type { ArtistWithFollowStatus } from '@/actions/artists';
@@ -14,28 +14,33 @@ export function ArtistSearch({ allArtists, onSearchResults }: ArtistSearchProps)
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
 
+    // Memoize the search function to prevent infinite re-renders
+    const performSearch = useCallback(async (query: string) => {
+        if (!query.trim()) {
+            onSearchResults(allArtists, false);
+            return;
+        }
+
+        setIsSearching(true);
+        try {
+            const searchResults = await searchArtistsWithFollowStatus(query, 20);
+            onSearchResults(searchResults, true);
+        } catch (error) {
+            console.error('Search error:', error);
+            onSearchResults([], true);
+        } finally {
+            setIsSearching(false);
+        }
+    }, [allArtists, onSearchResults]);
+
     // Debounced search effect
     useEffect(() => {
-        const timeoutId = setTimeout(async () => {
-            if (searchQuery.trim()) {
-                setIsSearching(true);
-                try {
-                    const searchResults = await searchArtistsWithFollowStatus(searchQuery, 20);
-                    onSearchResults(searchResults, true);
-                } catch (error) {
-                    console.error('Search error:', error);
-                    onSearchResults([], true);
-                } finally {
-                    setIsSearching(false);
-                }
-            } else {
-                onSearchResults(allArtists, false);
-                setIsSearching(false);
-            }
+        const timeoutId = setTimeout(() => {
+            performSearch(searchQuery);
         }, 300);
 
         return () => clearTimeout(timeoutId);
-    }, [searchQuery, allArtists, onSearchResults]);
+    }, [searchQuery, performSearch]);
 
     return (
         <div className="relative">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Search } from 'lucide-react';
 import { searchAdminArtists } from '@/actions/admin-search';
 import type { Artist } from '@/lib/mongodb/schemas';
@@ -14,28 +14,33 @@ export function AdminArtistSearch({ allArtists, onSearchResults }: AdminArtistSe
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
 
+    // Memoize the search function to prevent infinite re-renders
+    const performSearch = useCallback(async (query: string) => {
+        if (!query.trim()) {
+            onSearchResults(allArtists, false);
+            return;
+        }
+
+        setIsSearching(true);
+        try {
+            const searchResults = await searchAdminArtists(query, 50);
+            onSearchResults(searchResults, true);
+        } catch (error) {
+            console.error('Search error:', error);
+            onSearchResults([], true);
+        } finally {
+            setIsSearching(false);
+        }
+    }, [allArtists, onSearchResults]);
+
     // Debounced search effect
     useEffect(() => {
-        const timeoutId = setTimeout(async () => {
-            if (searchQuery.trim()) {
-                setIsSearching(true);
-                try {
-                    const searchResults = await searchAdminArtists(searchQuery, 50);
-                    onSearchResults(searchResults, true);
-                } catch (error) {
-                    console.error('Search error:', error);
-                    onSearchResults([], true);
-                } finally {
-                    setIsSearching(false);
-                }
-            } else {
-                onSearchResults(allArtists, false);
-                setIsSearching(false);
-            }
+        const timeoutId = setTimeout(() => {
+            performSearch(searchQuery);
         }, 300);
 
         return () => clearTimeout(timeoutId);
-    }, [searchQuery, allArtists, onSearchResults]);
+    }, [searchQuery, performSearch]);
 
     return (
         <div className="relative">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Users } from 'lucide-react';
 import { ArtistSearch } from '@/components/search/artist-search';
 import { OptimisticArtistGrid } from '@/components/music/optimistic-artist-grid';
@@ -20,10 +20,10 @@ export function ArtistsPageClient({
     const [displayedArtists, setDisplayedArtists] = useState(allArtists);
     const [isSearching, setIsSearching] = useState(false);
 
-    const handleSearchResults = (results: ArtistWithFollowStatus[], searching: boolean) => {
+    const handleSearchResults = useCallback((results: ArtistWithFollowStatus[], searching: boolean) => {
         setDisplayedArtists(results);
         setIsSearching(searching);
-    };
+    }, []);
 
     return (
         <div className="space-y-8 fade-in">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Disc } from 'lucide-react';
 import { AlbumSearch } from '@/components/search/album-search';
 import { OptimisticAlbumGrid } from '@/components/music/optimistic-album-grid';
@@ -18,10 +18,10 @@ export function AlbumsPageClient({
     const [displayedAlbums, setDisplayedAlbums] = useState(recentAlbums);
     const [isSearching, setIsSearching] = useState(false);
 
-    const handleSearchResults = (results: AlbumWithLikeStatus[], searching: boolean) => {
+    const handleSearchResults = useCallback((results: AlbumWithLikeStatus[], searching: boolean) => {
         setDisplayedAlbums(results);
         setIsSearching(searching);
-    };
+    }, []);
 
     return (
         <div className="space-y-8 fade-in">

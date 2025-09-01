@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Search } from 'lucide-react';
 import { searchAlbumsWithLikeStatus } from '@/actions/albums';
 import type { AlbumWithLikeStatus } from '@/actions/albums';
@@ -14,28 +14,33 @@ export function AlbumSearch({ allAlbums, onSearchResults }: AlbumSearchProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
 
+    // Memoize the search function to prevent infinite re-renders
+    const performSearch = useCallback(async (query: string) => {
+        if (!query.trim()) {
+            onSearchResults(allAlbums, false);
+            return;
+        }
+
+        setIsSearching(true);
+        try {
+            const searchResults = await searchAlbumsWithLikeStatus(query, 20);
+            onSearchResults(searchResults, true);
+        } catch (error) {
+            console.error('Search error:', error);
+            onSearchResults([], true);
+        } finally {
+            setIsSearching(false);
+        }
+    }, [allAlbums, onSearchResults]);
+
     // Debounced search effect
     useEffect(() => {
-        const timeoutId = setTimeout(async () => {
-            if (searchQuery.trim()) {
-                setIsSearching(true);
-                try {
-                    const searchResults = await searchAlbumsWithLikeStatus(searchQuery, 20);
-                    onSearchResults(searchResults, true);
-                } catch (error) {
-                    console.error('Search error:', error);
-                    onSearchResults([], true);
-                } finally {
-                    setIsSearching(false);
-                }
-            } else {
-                onSearchResults(allAlbums, false);
-                setIsSearching(false);
-            }
+        const timeoutId = setTimeout(() => {
+            performSearch(searchQuery);
         }, 300);
 
         return () => clearTimeout(timeoutId);
-    }, [searchQuery, allAlbums, onSearchResults]);
+    }, [searchQuery, performSearch]);
 
     return (
         <div className="relative">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Music } from 'lucide-react';
 import { TrackSearch } from '@/components/search/track-search';
 import { OptimisticTrackList } from '@/components/music/optimistic-track-list';
@@ -18,10 +18,10 @@ export function TracksPageClient({
     const [displayedTracks, setDisplayedTracks] = useState(recentTracks);
     const [isSearching, setIsSearching] = useState(false);
 
-    const handleSearchResults = (results: TrackWithLikeStatus[], searching: boolean) => {
+    const handleSearchResults = useCallback((results: TrackWithLikeStatus[], searching: boolean) => {
         setDisplayedTracks(results);
         setIsSearching(searching);
-    };
+    }, []);
 
     return (
         <div className="space-y-8 fade-in">
