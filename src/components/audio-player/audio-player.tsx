@@ -13,7 +13,6 @@ import {
     ChevronUp,
     ChevronDown,
     Music,
-    MoreHorizontal
 } from 'lucide-react';
 import { useAudio } from './audio-context';
 import { OptimisticLikeButton } from '@/components/ui/optimistic-interactive-buttons';
@@ -130,7 +129,7 @@ export function AudioPlayer() {
                                 />
                                 <button
                                     onClick={toggleShuffle}
-                                    className={`p-2 rounded-full transition-colors ${state.isShuffled
+                                    className={`p-2 rounded-full transition-colors cursor-pointer ${state.isShuffled
                                         ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
                                         : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
                                         }`}
@@ -140,7 +139,7 @@ export function AudioPlayer() {
                                 </button>
                                 <button
                                     onClick={previousTrack}
-                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors cursor-pointer"
                                     aria-label="Previous track"
                                 >
                                     <SkipBack className="h-5 w-5" />
@@ -148,7 +147,7 @@ export function AudioPlayer() {
                                 <button
                                     onClick={togglePlay}
                                     disabled={state.isLoading}
-                                    className="w-14 h-14 bg-green-600 hover:bg-green-700 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50 shadow-lg"
+                                    className="w-14 h-14 bg-green-600 hover:bg-green-700 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50 shadow-lg cursor-pointer"
                                     aria-label={state.isPlaying ? 'Pause' : 'Play'}
                                 >
                                     {state.isLoading ? (
@@ -161,14 +160,14 @@ export function AudioPlayer() {
                                 </button>
                                 <button
                                     onClick={nextTrack}
-                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors cursor-pointer"
                                     aria-label="Next track"
                                 >
                                     <SkipForward className="h-5 w-5" />
                                 </button>
                                 <button
                                     onClick={toggleRepeat}
-                                    className={`p-2 rounded-full transition-colors ${state.repeatMode !== 'none'
+                                    className={`p-2 rounded-full transition-colors cursor-pointer ${state.repeatMode !== 'none'
                                         ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
                                         : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
                                         }`}
@@ -179,7 +178,7 @@ export function AudioPlayer() {
                                 <VolumeControl compact />
                                 <button
                                     onClick={() => dispatch({ type: 'TOGGLE_MINIMIZED' })}
-                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors cursor-pointer"
                                     aria-label="Expand player"
                                 >
                                     <ChevronUp className="h-5 w-5" />
@@ -197,7 +196,7 @@ export function AudioPlayer() {
                             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Now Playing</h2>
                             <button
                                 onClick={() => dispatch({ type: 'TOGGLE_MINIMIZED' })}
-                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-600 dark:text-gray-400"
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-600 dark:text-gray-400 cursor-pointer"
                             >
                                 <ChevronDown className="h-5 w-5" />
                             </button>
@@ -242,7 +241,7 @@ export function AudioPlayer() {
 
                                         <div className="flex items-center gap-2 mb-4">
                                             {state.currentTrack.artistDetails?.map((artist, idx) => (
-                                                <span key={String(artist._id)} className="flex items-center gap-1">
+                                                <span key={String(artist._id)} className="flex items-center">
                                                     <Link
                                                         href={`/artists/${artist._id}`}
                                                         className="text-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
@@ -277,10 +276,6 @@ export function AudioPlayer() {
                                                 }}
                                                 className="px-4 py-2"
                                             />
-                                            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                                                <MoreHorizontal className="h-4 w-4" />
-                                                <span>More</span>
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -292,7 +287,7 @@ export function AudioPlayer() {
                                 <div className="flex items-center justify-center gap-4 mt-6">
                                     <button
                                         onClick={toggleShuffle}
-                                        className={`p-2 rounded-full transition-colors ${state.isShuffled
+                                        className={`p-2 rounded-full transition-colors cursor-pointer ${state.isShuffled
                                             ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
                                             : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
                                             }`}
@@ -302,7 +297,7 @@ export function AudioPlayer() {
 
                                     <button
                                         onClick={previousTrack}
-                                        className="p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-700 dark:text-gray-300"
+                                        className="p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-700 dark:text-gray-300 cursor-pointer"
                                     >
                                         <SkipBack className="h-6 w-6" />
                                     </button>
@@ -310,7 +305,7 @@ export function AudioPlayer() {
                                     <button
                                         onClick={togglePlay}
                                         disabled={state.isLoading}
-                                        className="w-14 h-14 bg-green-600 hover:bg-green-700 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50 shadow-lg"
+                                        className="w-14 h-14 bg-green-600 hover:bg-green-700 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50 shadow-lg cursor-pointer"
                                     >
                                         {state.isLoading ? (
                                             <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -323,14 +318,14 @@ export function AudioPlayer() {
 
                                     <button
                                         onClick={nextTrack}
-                                        className="p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-700 dark:text-gray-300"
+                                        className="p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-700 dark:text-gray-300 cursor-pointer"
                                     >
                                         <SkipForward className="h-6 w-6" />
                                     </button>
 
                                     <button
                                         onClick={toggleRepeat}
-                                        className={`p-2 rounded-full transition-colors ${state.repeatMode !== 'none'
+                                        className={`p-2 rounded-full transition-colors cursor-pointer ${state.repeatMode !== 'none'
                                             ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
                                             : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
                                             }`}
