@@ -65,7 +65,7 @@ export function PlayerProgress({ compact = false }: PlayerProgressProps) {
 
     if (compact) {
         return (
-            <div className="w-full">
+            <div className="w-full group relative">
                 <div
                     ref={progressRef}
                     className="w-full h-1 bg-gray-200 dark:bg-gray-700 cursor-pointer group"
@@ -77,6 +77,11 @@ export function PlayerProgress({ compact = false }: PlayerProgressProps) {
                     >
                         <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-3 h-3 bg-green-600 dark:bg-green-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
+                </div>
+                {/* Time Display on Hover */}
+                <div className="absolute left-0 top-4 flex justify-between w-full text-xs text-gray-600 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none select-none">
+                    <span>{formatTime(currentTime)}</span>
+                    <span>{formatTime(state.duration)}</span>
                 </div>
             </div>
         );

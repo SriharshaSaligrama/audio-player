@@ -409,23 +409,29 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         };
     }, [state.repeatMode]);
 
-    // Handle play/pause state changes
+    // Handle pause state changes
     useEffect(() => {
         const audio = audioRef.current;
         if (!audio) return;
 
-        if (state.isPlaying && !audio.paused) return;
-        if (!state.isPlaying && audio.paused) return;
-
-        if (state.isPlaying) {
-            audio.play().catch((error) => {
-                console.error('Failed to play audio:', error);
-                dispatch({ type: 'SET_ERROR', payload: 'Failed to play audio' });
-            });
-        } else {
+        if (!state.isPlaying) {
+            // Pausing: record position and pause
+            dispatch({ type: 'SET_CURRENT_TIME', payload: audio.currentTime });
             audio.pause();
         }
     }, [state.isPlaying]);
+
+    // Handle time synchronization separately (only when seeking or changing tracks)
+    useEffect(() => {
+        const audio = audioRef.current;
+        if (!audio) return;
+
+        // Only sync if there's a significant difference and we're not currently playing
+        // This prevents interference with natural playback
+        if (!state.isPlaying && Math.abs(audio.currentTime - state.currentTime) > 0.1) {
+            audio.currentTime = state.currentTime;
+        }
+    }, [state.currentTime, state.isPlaying]);
 
     // Handle volume changes
     useEffect(() => {
@@ -435,7 +441,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         audio.volume = state.isMuted ? 0 : state.volume;
     }, [state.volume, state.isMuted]);
 
-    // Handle track changes
+    // Handle track changes (only when track actually changes)
     useEffect(() => {
         const audio = audioRef.current;
         if (!audio || !state.currentTrack) return;
@@ -443,18 +449,47 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         audio.src = state.currentTrack.fileUrl;
         audio.load();
 
-        if (state.isPlaying) {
-            audio.play().catch((error) => {
-                console.error('Failed to play new track:', error);
-                dispatch({ type: 'SET_ERROR', payload: 'Failed to play track' });
-            });
-        }
-
         // Track play history for authenticated users
         if (isSignedIn && state.currentTrack) {
             addToPlayHistory(String(state.currentTrack._id)).catch(console.error);
         }
-    }, [state.currentTrack, isSignedIn, state.isPlaying]);
+    }, [state.currentTrack, isSignedIn]);
+
+    // Handle play state changes for current track
+    useEffect(() => {
+        const audio = audioRef.current;
+        if (!audio || !state.currentTrack) return;
+
+        if (state.isPlaying) {
+            // Sync time before playing to resume from correct position
+            const onCanPlay = () => {
+                audio.removeEventListener('canplay', onCanPlay);
+                audio.currentTime = state.currentTime;
+                audio.play().catch((error) => {
+                    // Swallow AbortError caused by rapid play/pause actions
+                    const name = (error && (error as Error).name) || '';
+                    if (name !== 'AbortError') {
+                        console.error('Failed to play track:', error);
+                        dispatch({ type: 'SET_ERROR', payload: 'Failed to play track' });
+                    }
+                });
+            };
+
+            if (audio.readyState >= 2) {
+                audio.currentTime = state.currentTime;
+                audio.play().catch((error) => {
+                    // Swallow AbortError caused by rapid play/pause actions
+                    const name = (error && (error as Error).name) || '';
+                    if (name !== 'AbortError') {
+                        console.error('Failed to play track:', error);
+                        dispatch({ type: 'SET_ERROR', payload: 'Failed to play track' });
+                    }
+                });
+            } else {
+                audio.addEventListener('canplay', onCanPlay);
+            }
+        }
+    }, [state.isPlaying, state.currentTime, state.currentTrack]);
 
     // Convenience methods
     const playTrack = (track: TrackWithLikeStatus, queue?: TrackWithLikeStatus[], index?: number) => {
@@ -526,11 +561,11 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <AudioContext.Provider value={contextValue}>
+        <AudioContext value={contextValue}>
             {children}
             {/* Hidden audio element */}
             <audio ref={audioRef} preload="metadata" />
-        </AudioContext.Provider>
+        </AudioContext>
     );
 }
 

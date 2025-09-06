@@ -7,12 +7,9 @@ import {
     Pause,
     SkipBack,
     SkipForward,
-    Volume2,
-    VolumeX,
     Shuffle,
     Repeat,
     Repeat1,
-    List,
     ChevronUp,
     ChevronDown,
     Music,
@@ -23,9 +20,10 @@ import { OptimisticLikeButton } from '@/components/ui/optimistic-interactive-but
 import { PlayerQueue } from './player-queue';
 import { PlayerProgress } from './player-progress';
 import { useLikeSync } from '@/contexts/like-sync-context';
+import { VolumeControl } from './volume-control';
 
 export function AudioPlayer() {
-    const { state, togglePlay, nextTrack, previousTrack, toggleMute, toggleShuffle, toggleRepeat, dispatch, updateTrackLikeStatus } = useAudio();
+    const { state, togglePlay, nextTrack, previousTrack, toggleShuffle, toggleRepeat, dispatch, updateTrackLikeStatus } = useAudio();
     const { syncTrackLikeStatus } = useLikeSync();
     // const [showVolumeSlider, setShowVolumeSlider] = useState(false);
 
@@ -61,108 +59,132 @@ export function AudioPlayer() {
                 }`}>
                 {/* Mini Player */}
                 {state.isMinimized && (
-                    <div className="flex items-center justify-between h-20 px-4">
-                        {/* Track Info */}
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <div className="relative w-12 h-12 flex-shrink-0">
-                                {coverImage ? (
-                                    <Image
-                                        src={coverImage}
-                                        alt={state.currentTrack.title}
-                                        width={48}
-                                        height={48}
-                                        className="rounded-lg object-cover"
-                                        unoptimized={true}
-                                    />
-                                ) : (
-                                    <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                                        <Music className="h-6 w-6 text-gray-400" />
-                                    </div>
-                                )}
+                    <div className="relative w-full">
+                        {/* Mini Player Progress Bar at the very top */}
+                        <div className="absolute left-0 right-0 top-0  z-10">
+                            <PlayerProgress compact />
+                        </div>
+                        {/* Mini Player Content below the progress bar */}
+                        <div className="flex items-center justify-between h-20 px-4 w-full">
+                            {/* Track Info */}
+                            <div className="flex items-center gap-3 flex-1 min-w-0 pl-4">
+                                <div className="relative w-12 h-12 flex-shrink-0 ">
+                                    {coverImage ? (
+                                        <Image
+                                            src={coverImage}
+                                            alt={state.currentTrack.title}
+                                            width={48}
+                                            height={48}
+                                            className="rounded-lg object-cover"
+                                            unoptimized={true}
+                                        />
+                                    ) : (
+                                        <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                                            <Music className="h-6 w-6 text-gray-400" />
+                                        </div>
+                                    )}
 
-                                {/* Playing indicator */}
-                                {state.isPlaying && (
-                                    <div className="absolute inset-0 bg-black/20 rounded-lg flex items-center justify-center">
-                                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                                    </div>
-                                )}
-                            </div>
+                                    {/* Playing indicator */}
+                                    {state.isPlaying && (
+                                        <div className="absolute inset-0 bg-black/20 rounded-lg flex items-center justify-center">
+                                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                                        </div>
+                                    )}
+                                </div>
 
-                            <div className="min-w-0 flex-1">
-                                <Link
-                                    href={`/tracks/${state.currentTrack._id}`}
-                                    className="block font-medium text-gray-900 dark:text-white hover:text-green-600 dark:hover:text-green-400 transition-colors truncate"
-                                >
-                                    {state.currentTrack.title}
-                                </Link>
-                                <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-                                    {state.currentTrack.artistDetails?.map((artist, idx) => (
-                                        <span key={String(artist._id)}>
-                                            <Link
-                                                href={`/artists/${artist._id}`}
-                                                className="hover:text-gray-900 dark:hover:text-white transition-colors"
-                                            >
-                                                {artist.name}
-                                            </Link>
-                                            {idx < state.currentTrack!.artistDetails.length - 1 && ', '}
-                                        </span>
-                                    ))}
+                                <div className="min-w-0 flex-1">
+                                    <Link
+                                        href={`/tracks/${state.currentTrack._id}`}
+                                        className="block font-medium text-gray-900 dark:text-white hover:text-green-600 dark:hover:text-green-400 transition-colors truncate"
+                                    >
+                                        {state.currentTrack.title}
+                                    </Link>
+                                    <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+                                        {state.currentTrack.artistDetails?.map((artist, idx) => (
+                                            <span key={String(artist._id)}>
+                                                <Link
+                                                    href={`/artists/${artist._id}`}
+                                                    className="hover:text-gray-900 dark:hover:text-white transition-colors"
+                                                >
+                                                    {artist.name}
+                                                </Link>
+                                                {idx < state.currentTrack!.artistDetails.length - 1 && ', '}
+                                            </span>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Mini Controls */}
-                        <div className="flex items-center gap-2">
-                            <OptimisticLikeButton
-                                type="track"
-                                id={String(state.currentTrack._id)}
-                                initialLiked={state.currentTrack.isLiked}
-                                onLikeChange={(newState) => {
-                                    updateTrackLikeStatus(String(state.currentTrack!._id), newState);
-                                    syncTrackLikeStatus(String(state.currentTrack!._id), newState);
-                                }}
-                                showText={false}
-                                className="p-2 border-none hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
-                            />
-
-                            <button
-                                onClick={previousTrack}
-                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
-                                aria-label="Previous track"
-                            >
-                                <SkipBack className="h-5 w-5" />
-                            </button>
-
-                            <button
-                                onClick={togglePlay}
-                                disabled={state.isLoading}
-                                className="w-14 h-14 bg-green-600 hover:bg-green-700 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50 shadow-lg"
-                                aria-label={state.isPlaying ? 'Pause' : 'Play'}
-                            >
-                                {state.isLoading ? (
-                                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                ) : state.isPlaying ? (
-                                    <Pause className="h-7 w-7" fill="currentColor" />
-                                ) : (
-                                    <Play className="h-7 w-7 ml-1" fill="currentColor" />
-                                )}
-                            </button>
-
-                            <button
-                                onClick={nextTrack}
-                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
-                                aria-label="Next track"
-                            >
-                                <SkipForward className="h-5 w-5" />
-                            </button>
-
-                            <button
-                                onClick={() => dispatch({ type: 'TOGGLE_MINIMIZED' })}
-                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
-                                aria-label="Expand player"
-                            >
-                                <ChevronUp className="h-5 w-5" />
-                            </button>
+                            {/* Mini Controls */}
+                            <div className="flex items-center gap-2">
+                                <OptimisticLikeButton
+                                    type="track"
+                                    id={String(state.currentTrack._id)}
+                                    initialLiked={state.currentTrack.isLiked}
+                                    onLikeChange={(newState) => {
+                                        updateTrackLikeStatus(String(state.currentTrack!._id), newState);
+                                        syncTrackLikeStatus(String(state.currentTrack!._id), newState);
+                                    }}
+                                    showText={false}
+                                    className="p-2 border-none hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+                                />
+                                <button
+                                    onClick={toggleShuffle}
+                                    className={`p-2 rounded-full transition-colors ${state.isShuffled
+                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                                        : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
+                                        }`}
+                                    aria-label="Shuffle"
+                                >
+                                    <Shuffle className="h-5 w-5" />
+                                </button>
+                                <button
+                                    onClick={previousTrack}
+                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                                    aria-label="Previous track"
+                                >
+                                    <SkipBack className="h-5 w-5" />
+                                </button>
+                                <button
+                                    onClick={togglePlay}
+                                    disabled={state.isLoading}
+                                    className="w-14 h-14 bg-green-600 hover:bg-green-700 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50 shadow-lg"
+                                    aria-label={state.isPlaying ? 'Pause' : 'Play'}
+                                >
+                                    {state.isLoading ? (
+                                        <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    ) : state.isPlaying ? (
+                                        <Pause className="h-7 w-7" fill="currentColor" />
+                                    ) : (
+                                        <Play className="h-7 w-7 ml-1" fill="currentColor" />
+                                    )}
+                                </button>
+                                <button
+                                    onClick={nextTrack}
+                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                                    aria-label="Next track"
+                                >
+                                    <SkipForward className="h-5 w-5" />
+                                </button>
+                                <button
+                                    onClick={toggleRepeat}
+                                    className={`p-2 rounded-full transition-colors ${state.repeatMode !== 'none'
+                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                                        : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
+                                        }`}
+                                    aria-label="Repeat"
+                                >
+                                    {getRepeatIcon()}
+                                </button>
+                                <VolumeControl compact />
+                                <button
+                                    onClick={() => dispatch({ type: 'TOGGLE_MINIMIZED' })}
+                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                                    aria-label="Expand player"
+                                >
+                                    <ChevronUp className="h-5 w-5" />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -173,27 +195,16 @@ export function AudioPlayer() {
                         {/* Header */}
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Now Playing</h2>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => dispatch({ type: 'TOGGLE_QUEUE' })}
-                                    className={`p-2 rounded-full transition-colors ${state.showQueue
-                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
-                                        : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
-                                        }`}
-                                >
-                                    <List className="h-5 w-5" />
-                                </button>
-                                <button
-                                    onClick={() => dispatch({ type: 'TOGGLE_MINIMIZED' })}
-                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-600 dark:text-gray-400"
-                                >
-                                    <ChevronDown className="h-5 w-5" />
-                                </button>
-                            </div>
+                            <button
+                                onClick={() => dispatch({ type: 'TOGGLE_MINIMIZED' })}
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-600 dark:text-gray-400"
+                            >
+                                <ChevronDown className="h-5 w-5" />
+                            </button>
                         </div>
-
+                        {/* Main Player and Queue Side by Side */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {/* Track Info */}
+                            {/* Track Info and Controls */}
                             <div className="lg:col-span-2">
                                 <div className="flex items-start gap-6">
                                     {/* Album Art */}
@@ -220,7 +231,6 @@ export function AudioPlayer() {
                                             </div>
                                         )}
                                     </div>
-
                                     {/* Track Details */}
                                     <div className="flex-1 min-w-0">
                                         <Link
@@ -274,12 +284,10 @@ export function AudioPlayer() {
                                         </div>
                                     </div>
                                 </div>
-
                                 {/* Progress Bar */}
                                 <div className="mt-6">
                                     <PlayerProgress />
                                 </div>
-
                                 {/* Main Controls */}
                                 <div className="flex items-center justify-center gap-4 mt-6">
                                     <button
@@ -329,55 +337,18 @@ export function AudioPlayer() {
                                     >
                                         {getRepeatIcon()}
                                     </button>
+                                    <VolumeControl />
                                 </div>
                             </div>
-
-                            {/* Volume Control */}
-                            <div className="flex flex-col items-center justify-center">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <button
-                                        onClick={toggleMute}
-                                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-600 dark:text-gray-400"
-                                    >
-                                        {state.isMuted || state.volume === 0 ? (
-                                            <VolumeX className="h-5 w-5" />
-                                        ) : (
-                                            <Volume2 className="h-5 w-5" />
-                                        )}
-                                    </button>
-
-                                    <div className="w-24">
-                                        <input
-                                            type="range"
-                                            min="0"
-                                            max="1"
-                                            step="0.01"
-                                            value={state.isMuted ? 0 : state.volume}
-                                            onChange={(e) => {
-                                                const volume = parseFloat(e.target.value);
-                                                dispatch({ type: 'SET_VOLUME', payload: volume });
-                                            }}
-                                            className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
-                                        />
-                                    </div>
-
-                                    <span className="text-sm text-gray-600 dark:text-gray-400 w-8 text-right">
-                                        {Math.round((state.isMuted ? 0 : state.volume) * 100)}
-                                    </span>
-                                </div>
-
-                                {/* Queue Info */}
-                                <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                                    <div>Track {state.currentIndex + 1} of {state.queue.length}</div>
-                                    {state.queue.length > 1 && (
-                                        <div className="mt-1">
-                                            {state.queue.length - state.currentIndex - 1} remaining
-                                        </div>
-                                    )}
-                                </div>
+                            {/* Always show the queue in the third column */}
+                            <div className="hidden lg:block">
+                                <PlayerQueue />
                             </div>
                         </div>
-
+                        {/* For mobile/tablet, show queue below player */}
+                        <div className="block lg:hidden mt-8">
+                            <PlayerQueue />
+                        </div>
                         {/* Error Display */}
                         {state.error && (
                             <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
@@ -387,11 +358,6 @@ export function AudioPlayer() {
                     </div>
                 )}
             </div>
-
-            {/* Queue Sidebar */}
-            {state.showQueue && !state.isMinimized && (
-                <PlayerQueue />
-            )}
         </>
     );
 }
