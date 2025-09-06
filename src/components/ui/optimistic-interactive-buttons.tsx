@@ -313,7 +313,7 @@ export function OptimisticLikeButtonWithCount({
         <button
             onClick={handleLike}
             disabled={isPending}
-            className={`flex items-center justify-center gap-2 cursor-pointer${showText ? 'px-6 py-3' : 'p-2'} border border-gray-300 dark:border-gray-600 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 ${liked
+            className={`flex items-center justify-center gap-2 cursor-pointer ${showText ? 'px-6 py-3' : 'p-2'} border border-gray-300 dark:border-gray-600 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 ${liked
                 ? 'text-red-600 border-red-300 bg-red-50 dark:bg-red-900/20'
                 : 'text-gray-700 dark:text-gray-300'
                 } ${className}`}
