@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Search, Music, Disc, Users } from 'lucide-react';
+import Link from 'next/link';
 import { globalSearchWithStatus, SearchResultsWithStatus } from '@/actions/search';
 import { OptimisticTrackList } from '@/components/music/optimistic-track-list';
 import { OptimisticAlbumGrid } from '@/components/music/optimistic-album-grid';
@@ -149,23 +150,32 @@ export default function SearchPage() {
                     </h2>
 
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-8 text-white text-center hover:from-green-600 hover:to-green-700 transition-all cursor-pointer">
+                        <Link
+                            href="/tracks"
+                            className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-8 text-white text-center hover:from-green-600 hover:to-green-700 transition-all cursor-pointer block"
+                        >
                             <Music className="h-12 w-12 mx-auto mb-4" />
                             <h3 className="text-xl font-semibold mb-2">All Tracks</h3>
                             <p className="text-green-100">Browse our complete music library</p>
-                        </div>
+                        </Link>
 
-                        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-8 text-white text-center hover:from-purple-600 hover:to-purple-700 transition-all cursor-pointer">
+                        <Link
+                            href="/albums"
+                            className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-8 text-white text-center hover:from-purple-600 hover:to-purple-700 transition-all cursor-pointer block"
+                        >
                             <Disc className="h-12 w-12 mx-auto mb-4" />
                             <h3 className="text-xl font-semibold mb-2">Albums</h3>
                             <p className="text-purple-100">Explore complete album collections</p>
-                        </div>
+                        </Link>
 
-                        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-8 text-white text-center hover:from-blue-600 hover:to-blue-700 transition-all cursor-pointer">
+                        <Link
+                            href="/artists"
+                            className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-8 text-white text-center hover:from-blue-600 hover:to-blue-700 transition-all cursor-pointer block"
+                        >
                             <Users className="h-12 w-12 mx-auto mb-4" />
                             <h3 className="text-xl font-semibold mb-2">Artists</h3>
                             <p className="text-blue-100">Discover talented musicians</p>
-                        </div>
+                        </Link>
                     </div>
                 </div>
             )}
