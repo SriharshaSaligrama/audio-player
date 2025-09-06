@@ -47,7 +47,7 @@ type AudioAction =
     | { type: 'SET_VOLUME'; payload: number }
     | { type: 'TOGGLE_MUTE' }
     | { type: 'TOGGLE_SHUFFLE' }
-    | { type: 'SET_REPEAT_MODE'; payload: 'none' | 'one' | 'all' }
+    | { type: 'SET_REPEAT_MODE'; payload?: 'none' | 'one' | 'all' }
     | { type: 'SET_LOADING'; payload: boolean }
     | { type: 'SET_ERROR'; payload: string | null }
     | { type: 'TOGGLE_MINIMIZED' }
@@ -206,7 +206,7 @@ function audioReducer(state: AudioState, action: AudioAction): AudioState {
         }
 
         case 'SET_REPEAT_MODE': {
-            const modes: ('none' | 'one' | 'all')[] = ['none', 'one', 'all'];
+            const modes: ('none' | 'one' | 'all')[] = ['none', 'all', 'one'];
             const currentModeIndex = modes.indexOf(state.repeatMode);
             const nextMode = action.payload || modes[(currentModeIndex + 1) % modes.length];
             return { ...state, repeatMode: nextMode };
@@ -527,7 +527,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
     const toggleMute = () => dispatch({ type: 'TOGGLE_MUTE' });
     const toggleShuffle = () => dispatch({ type: 'TOGGLE_SHUFFLE' });
-    const toggleRepeat = () => dispatch({ type: 'SET_REPEAT_MODE', payload: 'none' }); // Will cycle through modes
+    const toggleRepeat = () => dispatch({ type: 'SET_REPEAT_MODE' }); // Will cycle through modes
 
     const removeFromQueue = (index: number) => {
         dispatch({ type: 'REMOVE_FROM_QUEUE', payload: index });
